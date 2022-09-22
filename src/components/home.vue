@@ -1,6 +1,6 @@
 <template>
   <div >
-    <router-view/>
+    1234
   </div>
 </template>
 
@@ -16,15 +16,5 @@
    }
 </script>
 
-<style >
-*{
-    margin:0;
-    padding:0;
-  }
-body {
-  margin:0;
-  padding:0;
-  border:0;
-}
+<style scoped>
 </style>
-
