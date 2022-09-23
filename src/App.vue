@@ -1,5 +1,8 @@
 <template>
   <div id="app">
+      <div class="sidebar">
+          
+      </div>
       <transition name="fade">
           <router-view/>
       </transition>
@@ -28,6 +31,21 @@ body {
   padding:0;
   border:0;
 }
+.sidebar{
+  
+  position: fixed;
+  width: 50px;
+  height: 100vh;
+  transition: all .4s;
+  float: left;
+  overflow: hidden;
+  z-index: 200;
+  
+}
+.sidebar:hover{
+  width: 240px;
+}
+
 
 .fade-enter-active {
   transition: all .8s;

@@ -1,7 +1,7 @@
 <template>
-<div>
-  123
-</div> 
+  <div>
+    
+  </div> 
 </template>
 
 <script type="text/javascript">

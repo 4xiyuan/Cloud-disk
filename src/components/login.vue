@@ -167,9 +167,11 @@ body {
   -webkit-backdrop-filter: blur( 7.5px );
   border-radius: 20px;
   border: 1px solid rgba( 255, 255, 255, 0.18 );
+  z-index: 2;
 }
 
 .password{
+  z-index: 2;
   width: 300px;
   height: 40px;
   left: 0;
@@ -261,7 +263,7 @@ body {
   -moz-user-select:none;
   -ms-user-select:none;
   user-select:none;
-  color: rgb(116, 116, 116);
+  color: rgb(0, 0, 0);
 }
 .text1:hover{
   cursor:pointer;
