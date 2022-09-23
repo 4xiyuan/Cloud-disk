@@ -1,6 +1,6 @@
 <template>
   <div>
-    123
+    主页建设中
   </div> 
 </template>
 
