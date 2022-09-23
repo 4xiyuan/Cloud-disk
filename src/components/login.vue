@@ -270,4 +270,7 @@ body {
 .el-carousel >>> .el-carousel__indicators{
   display: none;
 }
+
+
+
 </style>

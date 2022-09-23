@@ -1,6 +1,8 @@
 <template>
-  <div >
-    <router-view/>
+  <div id="app">
+      <transition name="fade">
+          <router-view/>
+      </transition>
   </div>
 </template>
 
@@ -8,7 +10,7 @@
    export default {
    data() {
        return {
-
+        show:true,
        }
    },
    methods:{
@@ -16,7 +18,7 @@
    }
 </script>
 
-<style >
+<style>
 *{
     margin:0;
     padding:0;
@@ -26,5 +28,14 @@ body {
   padding:0;
   border:0;
 }
+
+.fade-enter-active {
+  transition: all .8s;
+}
+.fade-enter {
+  opacity: 0;
+  transform: translateX(40px);
+}
 </style>
+
 
