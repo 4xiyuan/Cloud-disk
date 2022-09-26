@@ -61,7 +61,9 @@
        }
    },
    created(){
-      
+      var users = 'false'
+      //开发阶段用sessionStorage部署后端之后记得改为localStorage
+      sessionStorage.setItem('users',users)
    },
    methods:{
     ups(num){
@@ -95,6 +97,7 @@
     login(){
       if(this.username&&this.password){
         if(this.username ==123&&this.password==123){
+        sessionStorage.setItem('users','true')
         this.$router.push('/home')
       }else{
         this.$message.error('账号或密码错误！');
