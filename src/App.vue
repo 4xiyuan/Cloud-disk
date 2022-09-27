@@ -1,42 +1,28 @@
 <template>
   <div id="app">
       <div :class="index&&usert=='true' ? 'sidebar':'sidebar2'">
-        <el-menu
-      default-active="2"
-      class="el-menu-vertical-demo"
-      @open="handleOpen"
-      @close="handleClose">
-      <el-submenu index="1">
-        <template slot="title">
-          <i class="el-icon-location"></i>
-          <span>导航一</span>
-        </template>
-        <el-menu-item-group>
-          <template slot="title">分组一</template>
-          <el-menu-item index="1-1">选项1</el-menu-item>
-          <el-menu-item index="1-2">选项2</el-menu-item>
-        </el-menu-item-group>
-        <el-menu-item-group title="分组2">
-          <el-menu-item index="1-3">选项3</el-menu-item>
-        </el-menu-item-group>
-        <el-submenu index="1-4">
-          <template slot="title">选项4</template>
-          <el-menu-item index="1-4-1">选项1</el-menu-item>
-        </el-submenu>
-      </el-submenu>
-      <el-menu-item index="2">
-        <i class="el-icon-menu"></i>
-        <span slot="title">导航二</span>
-      </el-menu-item>
-      <el-menu-item index="3" disabled>
-        <i class="el-icon-document"></i>
-        <span slot="title">导航三</span>
-      </el-menu-item>
-      <el-menu-item index="4">
-        <i class="el-icon-setting"></i>
-        <span slot="title">导航四</span>
-      </el-menu-item>
-    </el-menu>
+
+       <div class="User">
+          <div class="hrad">
+            <i class="el-icon-user-solid"></i>
+          </div>
+          <span style="margin-left: 10px;font-size: 18px;">张三李四</span>
+          <div class="foot"><i class="el-icon-more"></i></div>
+       </div>
+
+       <div class="card" >
+        <li style="list-style-type: none;float: left;" v-for="index in 6" :key="index">
+          <div v-if="index!=sidebarnum" @mouseover="ind=index" @mouseleave="ind=null" @click="Sidebars(index)" :class="ind==index ? 'cards2':'cards'">
+            <i class="el-icon-eleme"></i>
+            <span class="textr">分支{{index}}</span>
+          </div>
+          <div v-else class="cards3">
+              <i class="el-icon-eleme"></i>
+              <span class="textr">分支{{index}}</span>
+          </div>
+        </li>
+       </div>
+
       </div>
       <div v-if="usert=='true'" :class="index ? 'anniu':'anniu2'">
             <i v-if="index==true" @click="index=!index" class="el-icon-caret-left"></i>
@@ -56,6 +42,8 @@
        return {
           index:true,
           usert:sessionStorage.getItem('users'),
+          ind:100,
+          sidebarnum:1,
        }
    },
 
@@ -65,15 +53,29 @@
       this.initData();
     }
   },
+  created(){
+    this.initData();
+  },
    methods:{
     initData(){
       this.usert=sessionStorage.getItem('users')
+      if(sessionStorage.getItem('sidebar')){
+        this.sidebarnum=sessionStorage.getItem('sidebar')-0
+      }
+      
     },
+    Sidebars(index){
+      sessionStorage.setItem('sidebar',''+index)
+      this.sidebarnum = index
+    }
    }
    }
 </script>
 
-<style>
+<style >
+
+
+
 *{
     margin:0;
     padding:0;
@@ -83,27 +85,92 @@ body {
   padding:0;
   border:0;
 }
-.el-menu-vertical-demo{
-  height: 100vh;
+.User{
+  margin-top: 70px;
+  width: 100%;
+  height: 70px;
+  line-height: 70px;
 }
+.hrad{
+  font-size: 30px;
+  float: left;
+  margin-left: 20px;
+}
+.foot{
+  font-size: 20px;
+  float: right;
+  margin-right: 20px;
+  cursor:pointer;
+}
+.card{
+  margin-left: 10px;
+}
+.cards{
+  padding-left: 10px;
+  font-size: 25px;
+  width: 210px;
+  height: 50px;
+  line-height: 50px;
+  cursor:pointer;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
+}
+.cards2{
+  padding-left: 10px;
+  background: rgb(230, 230, 230);
+  border-radius: 15px;
+  font-size: 25px;
+  width: 210px;
+  height: 50px;
+  line-height: 50px;
+  cursor:pointer;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
+}
+.cards3{
+  padding-left: 10px;
+  background: rgb(208, 208, 208);
+  border-radius: 15px;
+  font-size: 25px;
+  width: 210px;
+  height: 50px;
+  line-height: 50px;
+  cursor:pointer;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
+}
+
+.textr{
+  font-size: 16px;
+  float: right;
+  margin-right: 120px;
+}
+
 .sidebar{
+  background: rgb(243, 243, 243);
   position: fixed;
   width: 240px;
   height: 100vh;
   transition: all .4s;
   float: left;
-  overflow: hidden;
-  z-index: 200;
+  z-index: 100;
   
 }
 .sidebar2{
   position: fixed;
-  width: 0px;
+  margin-left: -240px;
+  width: 240px;
   height: 100vh;
   transition: all .4s;
   float: left;
+  z-index: 100;
   overflow: hidden;
-  z-index: 200;
 }
 
 
@@ -126,7 +193,7 @@ body {
   position: fixed;
   z-index: 990;
   float: left;
-  margin-left: 230px;
+  margin-left: 235px;
   font-size: 40px;
   line-height: 100vh;
   transition: all .4s;
