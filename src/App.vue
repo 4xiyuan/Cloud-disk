@@ -1,13 +1,17 @@
 <template>
   <div id="app">
       <div :class="index&&usert=='true' ? 'sidebar':'sidebar2'">
-
+        <div class="LOGO">
+          <img class="logos"  src="../public/photo/LOGO.png" width="50" height="50px">
+          <span class="LOGO-text">speed云盘</span>
+        </div>
        <div class="User">
           <div class="hrad">
             <i class="el-icon-user-solid"></i>
           </div>
           <span style="margin-left: 10px;font-size: 18px;">张三李四</span>
           <div class="foot"><i class="el-icon-more"></i></div>
+
        </div>
 
        <div class="card" >
@@ -21,6 +25,12 @@
               <span class="textr">分支{{index}}</span>
           </div>
         </li>
+       </div>
+
+       <div class="foots">
+        <span class="foots-text">160 GB / 240 GB</span>
+        <span class="foots-text2">管理容量</span>
+        <el-progress style="margin-top: 10px;"  :percentage="160/240*100" :show-text="false"></el-progress>
        </div>
 
       </div>
@@ -85,8 +95,43 @@ body {
   padding:0;
   border:0;
 }
+.LOGO{
+  width: 100%;
+  height: 70px;
+  line-height: 90px;
+}
+.logos{
+  float: left;
+  margin-left: 20px;
+  margin-top: 20px;
+}
+.LOGO-text{
+  font-size: 20px;
+  margin-left: 15px;
+  font-weight: 700;
+}
+.foots-text{
+  font-size: 14px;
+  color: rgb(55, 55, 55);
+}
+.foots-text2{
+  float: right;
+  font-size: 14px;
+  color: rgb(21, 108, 184);
+  cursor: pointer;
+}
+.foots-text2:hover{
+  color: rgb(29, 149, 255);
+}
+.foots{
+  position: absolute;
+  bottom: 0;
+  margin-bottom: 20px;
+  width: 90%;
+  margin-left: 5%;
+  height: 40px;
+}
 .User{
-  margin-top: 70px;
   width: 100%;
   height: 70px;
   line-height: 70px;
