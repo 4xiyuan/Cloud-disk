@@ -1,14 +1,14 @@
 <template>
-  <div>
-    全部文件页面建设中
-  </div> 
+  <div >
+    文档页面建设中
+  </div>
 </template>
 
 <script type="text/javascript">
    export default {
    data() {
        return {
-          
+
        }
    },
    methods:{
@@ -17,15 +17,4 @@
 </script>
 
 <style scoped>
-*{
-    margin:0;
-    padding:0;
-  }
-body {
-  margin:0;
-  padding:0;
-  border:0;
-}
-
-
 </style>

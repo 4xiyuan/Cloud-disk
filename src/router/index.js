@@ -2,7 +2,9 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import home from '../components/home.vue'
 import login from '../components/login.vue'
-
+import photo from '../components/photo.vue'
+import video from '../components/video.vue'
+import file from '../components/file.vue'
 Vue.use(Router);
 
  
@@ -21,6 +23,21 @@ const routes = [
         path: '/home',
         name: 'home',
         component: home,
+      },
+      {
+        path: '/photo',
+        name: 'photo',
+        component: photo,
+      },
+      {
+        path: '/video',
+        name: 'video',
+        component: video,
+      },
+      {
+        path: '/file',
+        name: 'file',
+        component: file,
       },
   ];
   

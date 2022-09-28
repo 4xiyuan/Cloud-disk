@@ -10,7 +10,20 @@
             <i class="el-icon-user-solid"></i>
           </div>
           <span style="margin-left: 10px;font-size: 18px;">张三李四</span>
-          <div class="foot"><i class="el-icon-more"></i></div>
+          <div class="foot">
+            <el-dropdown trigger="click" placement="top-start">
+              <span class="el-dropdown-link">
+                <i class="el-icon-more"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item >个人中心</el-dropdown-item>
+                <el-dropdown-item >我的分享</el-dropdown-item>
+                <el-dropdown-item >回收站</el-dropdown-item>
+                <el-dropdown-item >账号管理</el-dropdown-item>
+                <el-dropdown-item >退出登入</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </div>
 
        </div>
 
@@ -54,6 +67,7 @@
           usert:sessionStorage.getItem('users'),
           ind:100,
           sidebarnum:1,
+          routers:['/home','/photo','/video','/file']
        }
    },
 
@@ -77,6 +91,7 @@
     Sidebars(index){
       sessionStorage.setItem('sidebar',''+index)
       this.sidebarnum = index
+      this.$router.push(this.routers[index-1])
     }
    }
    }
@@ -142,10 +157,15 @@ body {
   margin-left: 20px;
 }
 .foot{
-  font-size: 20px;
   float: right;
   margin-right: 20px;
   cursor:pointer;
+}
+.el-dropdown{
+  height: 30px;
+}
+.el-dropdown-link{
+  font-size: 20px;
 }
 .card{
   margin-left: 10px;
