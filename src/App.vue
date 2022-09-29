@@ -110,6 +110,10 @@ body {
   padding:0;
   border:0;
 }
+body::-webkit-scrollbar {
+  display: none;
+}
+
 .LOGO{
   width: 100%;
   height: 70px;
@@ -141,7 +145,7 @@ body {
 .foots{
   position: absolute;
   bottom: 0;
-  margin-bottom: 20px;
+  margin-bottom: 40px;
   width: 90%;
   margin-left: 5%;
   height: 40px;

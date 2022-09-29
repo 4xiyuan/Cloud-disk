@@ -1,5 +1,8 @@
 <template>
   <div class="head">
+    <video autoplay loop muted="" preload>
+      <source src="../../public/video/tropicalflow.mp4">
+    </video>
     <div class="bodys">
       <el-carousel ref="setActiveItem" width="400px" height="500px" :interval="0" arrow="never">
         <el-carousel-item >
@@ -12,13 +15,13 @@
           </div>
 
           <div >
-              <input class="username" @focus="ups(1)" @blur="downs(0)"  v-model="username" type="text">
-              <span :class="[{'up':Stylevariable==1},{'down':Stylevariable==0}]">账号</span>
+              <input ref="Username" class="username" @focus="ups(1)" @blur="downs(0)"  v-model="username" type="text">
+              <span @click="userju('Username')" :class="[{'up':Stylevariable==1},{'down':Stylevariable==0}]">账号</span>
           </div>
 
           <div >
-              <input class="password" @focus="ups(3)" @blur="downs(2)"  v-model="password" type="password">
-              <span :class="[{'up1':Stylevariable1==3},{'down1':Stylevariable1==2}]">密码</span>
+              <input ref="Password"  class="password" @focus="ups(3)" @blur="downs(2)"  v-model="password" type="password">
+              <span @click="userju('Password')" :class="[{'up1':Stylevariable1==3},{'down1':Stylevariable1==2}]">密码</span>
           </div>
               <el-button class="login" type="primary" round @click="login()">登&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;录</el-button>
               <span class="text1" @click="next()">没有账号？点我注册！</span>
@@ -34,13 +37,13 @@
           </div>
 
           <div >
-              <input class="username" @focus="ups(1)" @blur="downs(0)"  v-model="username" type="text">
-              <span :class="[{'up':Stylevariable==1},{'down':Stylevariable==0}]">输入账号</span>
+              <input ref="Usernames" class="username" @focus="ups(1)" @blur="downs(0)"  v-model="username" type="text">
+              <span @click="userju('Usernames')" :class="[{'up':Stylevariable==1},{'down':Stylevariable==0}]">输入账号</span>
           </div>
 
           <div >
-              <input class="password" @focus="ups(3)" @blur="downs(2)"  v-model="password" type="password">
-              <span :class="[{'up1':Stylevariable1==3},{'down1':Stylevariable1==2}]">输入密码</span>
+              <input ref="Passwords" class="password" @focus="ups(3)" @blur="downs(2)"  v-model="password" type="password">
+              <span @click="userju('Passwords')" :class="[{'up1':Stylevariable1==3},{'down1':Stylevariable1==2}]">输入密码</span>
           </div>
               <el-button class="login" type="primary" round>注&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;册</el-button>
               <span class="text1" @click="next()">已有账号？点我登录！</span>
@@ -66,6 +69,11 @@
       sessionStorage.setItem('users',users)
    },
    methods:{
+    userju(na){
+      var names = na
+      this.$refs[names].focus()
+
+    },
     ups(num){
       if(num>=2){
         this.Stylevariable1 = num
@@ -123,7 +131,7 @@ body {
 
 }
 .head{
-  background-image: url('../../public/photo/login1.webp');
+  /* background-image: url('../../public/photo/login1.webp'); */
   width:100%;
   height:100%;
   position:fixed;
@@ -170,11 +178,10 @@ body {
   -webkit-backdrop-filter: blur( 7.5px );
   border-radius: 20px;
   border: 1px solid rgba( 255, 255, 255, 0.18 );
-  z-index: 2;
+  
 }
 
 .password{
-  z-index: 2;
   width: 300px;
   height: 40px;
   left: 0;
