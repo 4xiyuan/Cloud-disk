@@ -133,7 +133,7 @@
             this.next()
 
           }else{
-            this.$message.error('注册失败！');
+            this.$message.error(res.data.msg);
           }
         }))
       }else{
