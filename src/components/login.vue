@@ -23,7 +23,7 @@
               <input ref="Password"  class="password" @focus="ups(3)" @blur="downs(2)"  v-model="password" type="password">
               <span @click="userju('Password')" :class="[{'up1':Stylevariable1==3},{'down1':Stylevariable1==2}]">密码</span>
           </div>
-              <el-button class="login" type="primary" round @click="login()">登&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;录</el-button>
+              <el-button class="login" type="primary" round @click="logins()">登&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;录</el-button>
               <span class="text1" @click="next()">没有账号？点我注册！</span>
         </el-carousel-item>
 
@@ -45,7 +45,7 @@
               <input ref="Passwords" class="password" @focus="ups(3)" @blur="downs(2)"  v-model="password" type="password">
               <span @click="userju('Passwords')" :class="[{'up1':Stylevariable1==3},{'down1':Stylevariable1==2}]">输入密码</span>
           </div>
-              <el-button class="login" type="primary" round>注&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;册</el-button>
+              <el-button @click="register()" class="login" type="primary" round>注&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;册</el-button>
               <span class="text1" @click="next()">已有账号？点我登录！</span>
         </el-carousel-item>
       </el-carousel>
@@ -54,6 +54,7 @@
 </template>
 
 <script type="text/javascript">
+  import { userlogin,userregister } from '../apis/index.js'
    export default {
    data() {
        return {
@@ -69,6 +70,25 @@
       sessionStorage.setItem('users',users)
    },
    methods:{
+    logins(){
+      if(this.username&&this.password){
+          var data = {
+          username:this.username,
+          password:this.password
+        }
+        userlogin(data).then((res=>{
+          if(res.data.code==200){
+            sessionStorage.setItem('users','true')
+            this.$router.push('/home')
+          }else{
+            this.$message.error('账号或密码错误！');
+          }
+        }))
+      }else{
+          this.$message.error('请输入账号或密码！');
+      }
+      
+    },
     userju(na){
       var names = na
       this.$refs[names].focus()
@@ -95,26 +115,32 @@
       
     },
     next(){
-
       this.username = null
       this.password = null
       this.Stylevariable=0
       this.Stylevariable1=2
       this.$refs.setActiveItem.next()
     },
-    login(){
+    register(){
       if(this.username&&this.password){
-        if(this.username ==123&&this.password==123){
-        sessionStorage.setItem('users','true')
-        this.$router.push('/home')
+          var data = {
+          userName:this.username,
+          password:this.password
+        }
+        userregister(data).then((res=>{
+          if(res.data.code==200){
+            this.$message.success('注册成功！');
+            this.next()
+
+          }else{
+            this.$message.error('注册失败！');
+          }
+        }))
       }else{
-        this.$message.error('账号或密码错误！');
+          this.$message.error('请输入账号或密码！');
       }
-      }else{
-        this.$message.error('请输入账号或密码！');
-      }
-      
-    }
+    },
+  
    }
    }
 </script>

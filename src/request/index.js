@@ -1,0 +1,31 @@
+import axios from 'axios'
+const service = axios.create({
+
+	baseURL: "http://localhost:8089/", // 所有的请求地址前缀部分
+	timeout: 60000, // 请求超时时间毫秒
+	withCredentials: true, // 异步请求携带cookie
+	headers: {
+		// 设置后端需要的传参类型
+		'Content-Type': 'application/json',
+		// 'token': 'your token',
+		'X-Requested-With': 'XMLHttpRequest',
+	},
+})
+
+// 添加请求拦截器
+service.interceptors.request.use(
+	function (config) {
+		// 在发送请求之前做些什么
+		return config
+	},
+	function (error) {
+		// 对请求错误做些什么
+		console.log(error)
+		return Promise.reject(error)
+	}
+)
+
+// 添加响应拦截器
+
+
+export default service
