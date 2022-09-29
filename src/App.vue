@@ -30,12 +30,12 @@
        <div class="card" >
         <li style="list-style-type: none;float: left;" v-for="index in 6" :key="index">
           <div v-if="index!=sidebarnum" @mouseover="ind=index" @mouseleave="ind=null" @click="Sidebars(index)" :class="ind==index ? 'cards2':'cards'">
-            <i class="el-icon-eleme"></i>
-            <span class="textr">分支{{index}}</span>
+            <img class="che"  :src="require('../public/photo/che'+(index-1)+'.png')" >
+            <span class="textr">{{title[index-1]}}</span>
           </div>
           <div v-else class="cards3">
-              <i class="el-icon-eleme"></i>
-              <span class="textr">分支{{index}}</span>
+              <img class="che"  :src="require('../public/photo/che'+(index-1)+'.png')" >
+              <span class="textr">{{title[index-1]}}</span>
           </div>
         </li>
        </div>
@@ -67,7 +67,8 @@
           usert:sessionStorage.getItem('users'),
           ind:100,
           sidebarnum:1,
-          routers:['/home','/photo','/video','/file']
+          routers:['/home','/photo','/video','/file'],
+          title:['全部文件','照片','音视频','我的隐私','待定1','待定2']
        }
    },
 
@@ -119,6 +120,14 @@ body::-webkit-scrollbar {
   height: 70px;
   line-height: 90px;
 }
+
+.che{
+  width: 22px;
+  height: 22px;
+  float: left;
+  margin-top: 15px;
+}
+
 .logos{
   float: left;
   margin-left: 20px;
@@ -217,8 +226,8 @@ body::-webkit-scrollbar {
 
 .textr{
   font-size: 16px;
-  float: right;
-  margin-right: 120px;
+  float: left ;
+  margin-left: 10px;
 }
 
 .sidebar{

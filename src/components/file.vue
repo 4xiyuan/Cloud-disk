@@ -1,6 +1,6 @@
 <template>
   <div >
-    文档页面建设中
+    我的隐私页面建设中
   </div>
 </template>
 
