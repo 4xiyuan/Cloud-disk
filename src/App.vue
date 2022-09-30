@@ -1,5 +1,9 @@
 <template>
   <div id="app">
+      <div v-if="usert=='true'" :class="index&&usert=='true' ?'Toptaskbar':'Toptaskbar2'">
+          顶部栏待定中
+      </div>
+
       <div :class="index&&usert=='true' ? 'sidebar':'sidebar2'">
         <div class="LOGO">
           <img class="logos"  src="../public/photo/LOGO.png" width="50" height="50px">
@@ -48,8 +52,8 @@
 
       </div>
       <div v-if="usert=='true'" :class="index ? 'anniu':'anniu2'">
-            <i v-if="index==true" @click="index=!index" class="el-icon-caret-left"></i>
-            <i v-else @click="index=!index" class="el-icon-caret-right"></i>
+            <i v-if="index==true" @click="types()" class="el-icon-caret-left"></i>
+            <i v-else  @click="types()" class="el-icon-caret-right"></i>
       </div>
       <div :class="index&&usert=='true' ? 'bodu':'bodu2'">
         <transition name="fade">
@@ -63,7 +67,7 @@
    export default {
    data() {
        return {
-          index:true,
+          index:sessionStorage.getItem('sidebartype')=='true',
           usert:sessionStorage.getItem('users'),
           ind:100,
           sidebarnum:1,
@@ -82,10 +86,21 @@
     this.initData();
   },
    methods:{
+    types(){
+      this.index = !this.index
+      this.setSessionItem('sidebartype',this.index+'')
+    },
     initData(){
       this.usert=sessionStorage.getItem('users')
       if(sessionStorage.getItem('sidebar')){
         this.sidebarnum=sessionStorage.getItem('sidebar')-0
+      }
+      if(sessionStorage.getItem('sidebartype')){
+        if(sessionStorage.getItem('sidebartype')=='true'){
+          this.index = true
+        }else{
+          this.index=false
+        }
       }
       
     },
@@ -114,7 +129,23 @@ body {
 body::-webkit-scrollbar {
   display: none;
 }
-
+.Toptaskbar{
+  position: fixed;
+  z-index: 200;
+  width: 100%;
+  margin-left: 240px;
+  height: 90px;
+  transition: all .4s;
+  background: rgb(200, 200, 200);
+}
+.Toptaskbar2{
+  width: 100%;
+  z-index: 200;
+  position: fixed;
+  background: rgb(200, 200, 200);
+  height: 90px;
+  transition: all .4s;
+}
 .LOGO{
   width: 100%;
   height: 70px;

@@ -1,8 +1,8 @@
 <template>
   <div class="head">
-    <video autoplay loop muted="" preload>
+    <!-- <video autoplay loop muted="" preload>
       <source src="../../public/video/tropicalflow.mp4">
-    </video>
+    </video> -->
     <div class="bodys">
       <el-carousel ref="setActiveItem" width="400px" height="500px" :interval="0" arrow="never">
         <el-carousel-item >
@@ -79,6 +79,7 @@
         userlogin(data).then((res=>{
           if(res.data.code==200){
             sessionStorage.setItem('users','true')
+            sessionStorage.setItem('sidebartype','true')
             this.$router.push('/home')
           }else{
             this.$message.error('账号或密码错误！');
@@ -157,7 +158,7 @@ body {
 
 }
 .head{
-  /* background-image: url('../../public/photo/login1.webp'); */
+  background-image: url('../../public/photo/login1.webp');
   width:100%;
   height:100%;
   position:fixed;
