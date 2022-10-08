@@ -1,7 +1,35 @@
 <template>
   <div id="app">
       <div v-if="usert=='true'" :class="index&&usert=='true' ?'Toptaskbar':'Toptaskbar2'">
-          顶部栏待定中
+          <el-breadcrumb separator-class="el-icon-arrow-right">
+              <el-breadcrumb-item :to="{ path: '/' }">全部文件</el-breadcrumb-item>
+              <el-breadcrumb-item :to="{ path: '/' }">全部文件</el-breadcrumb-item>
+              <el-breadcrumb-item :to="{ path: '/' }">全部文件</el-breadcrumb-item>
+
+          </el-breadcrumb>
+
+          <div class="searchbox">
+             <el-input
+              placeholder="搜索内容"
+              prefix-icon="el-icon-search"
+              v-model="searchText">
+            </el-input>
+          </div>
+          <div class="expandbox">
+            <el-dropdown trigger="click" placement="top-start">
+              <span class="el-dropdown-link">
+                <i class="el-icon-circle-plus-outline"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item >上传文件</el-dropdown-item>
+                <el-dropdown-item >上传文件夹</el-dropdown-item>
+                <el-dropdown-item @click.native="dialogVisible = true">新建文件夹</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </div>
+          <div @click="gto('transmission')" class="transmission" title="上传列表">
+            <i class="el-icon-upload2"></i>
+          </div>
       </div>
 
       <div :class="index&&usert=='true' ? 'sidebar':'sidebar2'">
@@ -60,6 +88,19 @@
             <router-view/>
         </transition>
       </div>
+
+
+
+      <el-dialog
+        title="新建文件夹"
+        :visible.sync="dialogVisible"
+        width="400px">
+        <div class="NewFolder"><img  src="../public/photo/folder.png" width="100px" height="80px"></div>
+        <div style="margin-top: 30px;"><el-input v-model="NewFolderName" placeholder="文件夹名称"></el-input></div>
+        <span slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+        </span>
+      </el-dialog>
   </div>
 </template>
 
@@ -72,7 +113,12 @@
           ind:100,
           sidebarnum:1,
           routers:['/home','/photo','/video','/file'],
-          title:['全部文件','照片','音视频','我的隐私','待定1','待定2']
+          title:['全部文件','照片','音视频','我的隐私','待定1','待定2'],
+          searchText:null,
+          //新建文件夹层是否渲染变量
+          dialogVisible:false,
+          //新建文件夹名称
+          NewFolderName:null,
        }
    },
 
@@ -108,6 +154,9 @@
       sessionStorage.setItem('sidebar',''+index)
       this.sidebarnum = index
       this.$router.push(this.routers[index-1])
+    },
+    gto(name){
+      this.$router.push("/"+name)
     }
    }
    }
@@ -129,6 +178,48 @@ body {
 body::-webkit-scrollbar {
   display: none;
 }
+.NewFolder{
+  margin-top: 20px;
+  margin-left: 140px;
+}
+.el-dialog{
+  position: absolute;
+}
+.el-dialog__body{
+  height: 150px;
+}
+.expandbox{
+  top: 25px;
+  position: fixed;
+  width: 240px;
+  right: -80px;
+  cursor: pointer;
+}
+.transmission{
+  font-size: 30px;
+  position: fixed;
+  right: 180px;
+  top: 25px;
+  cursor: pointer;
+}
+.transmission:hover{
+  color: rgb(33, 155, 254);
+}
+.searchbox{
+  top: 25px;
+  position: fixed;
+  width: 240px;
+  right: 230px;
+}
+
+.el-breadcrumb{
+  margin-top: 33px;
+  margin-left: 20px;
+  
+}
+.el-breadcrumb__item{
+  font-size: 22px;
+}
 .Toptaskbar{
   position: fixed;
   z-index: 200;
@@ -136,13 +227,14 @@ body::-webkit-scrollbar {
   margin-left: 240px;
   height: 90px;
   transition: all .4s;
-  background: rgb(200, 200, 200);
+  background: rgb(255, 255, 255);
 }
 .Toptaskbar2{
+  
   width: 100%;
   z-index: 200;
   position: fixed;
-  background: rgb(200, 200, 200);
+  background: rgb(255, 255, 255);
   height: 90px;
   transition: all .4s;
 }
@@ -209,7 +301,11 @@ body::-webkit-scrollbar {
   height: 30px;
 }
 .el-dropdown-link{
-  font-size: 20px;
+  font-size: 30px;
+  
+}
+.el-dropdown-link:hover{
+  color: rgb(33, 155, 254);
 }
 .card{
   margin-left: 10px;
@@ -284,7 +380,7 @@ body::-webkit-scrollbar {
 
 
 .fade-enter-active {
-  transition: all .8s;
+  transition: all .2s;
 }
 .fade-enter {
   opacity: 0;

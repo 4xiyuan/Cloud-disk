@@ -2,7 +2,7 @@
   <div  :class="sidebartypes ? 'xlayer' :'xlayer2'">
     <li style="float: left;list-style-type: none;" v-for="index in 66" :key="index">
         <div class="Alayer">
-          <div class="Alayer-x">
+          <div @click="gto()" class="Alayer-x">
             <div class="tubiao" ><img style="margin-top: 10px;" src="../../public/photo/folder.png" width="100px" height="80px"></div>
             <div v-if="index%2==0" class="Alayer-text">等你哦啊</div>
             <div v-else class="Alayer-text">等你哦啊阿斯顿弄阿松大涡潮单双排女阿婆</div>
@@ -33,7 +33,9 @@
     });
    },
    methods:{
-    
+    gto(){
+      this.$router.push('/folder')
+    },
    }
    }
 </script>
@@ -52,13 +54,13 @@ body {
   margin-top: 90px;
   position: absolute;
   width: 96%-240px;
-  margin-left: 2%-400px;
+  margin-left: 1%;
 }
 .xlayer2{
   margin-top: 90px;
   position: absolute;
   width: 96%;
-  margin-left: 2%;
+  margin-left: 3%;
 }
 .Alayer{
   width: 120px;

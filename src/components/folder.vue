@@ -1,17 +1,19 @@
 <template>
   <div  :class="sidebartypes ? 'xlayer' :'xlayer2'">
-    <li style="float: left;list-style-type: none;" v-for="index in 66" :key="index">
-        <div class="Alayer">
-          <div class="Alayer-x">
-            <div class="tubiao" ><img style="margin-top: 10px;" src="../../public/photo/tu.png" width="80px" height="80px"></div>
-            <div v-if="index%2==0" class="Alayer-text">等你哦啊</div>
-            <div v-else class="Alayer-text">等你哦啊阿斯顿弄阿松大涡潮单双排女阿婆</div>
-            <div class="time">2022/08/09 16:40</div>
-            <div style="height: 10px;"></div>
+      <li style="float: left;list-style-type: none;" v-for="index in 66" :key="index">
+          <div class="Alayer">
+            <div class="Alayer-x">
+              <div class="tubiao" >
+                <img v-if="index%2!=0" style="margin-top: 10px;" src="../../public/photo/compressed.png" width="80px" height="80px">
+                <img v-else style="margin-top: 10px;" src="../../public/photo/Txt.png" width="80px" height="80px"> 
+              </div>
+              <div v-if="index%2==0" class="Alayer-text">大师傅啊.txt</div>
+              <div v-else class="Alayer-text">甲能.zip</div>
+              <div class="time">2022/08/09 16:40</div>
+              <div style="height: 10px;"></div>
+            </div>
           </div>
-        </div>
-    </li>
-    
+      </li>
   </div> 
 </template>
 
