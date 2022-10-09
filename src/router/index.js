@@ -6,7 +6,6 @@ import photo from '../components/photo.vue'
 import video from '../components/video.vue'
 import file from '../components/file.vue'
 import folder from '../components/folder.vue'
-import transmission from '../components/transmission.vue'
 Vue.use(Router);
 
  
@@ -46,12 +45,6 @@ const routes = [
         path: '/folder',
         name: 'folder',
         component: folder,
-        
-      },
-      {
-        path: '/transmission',
-        name: 'transmission',
-        component: transmission,
         
       },
       

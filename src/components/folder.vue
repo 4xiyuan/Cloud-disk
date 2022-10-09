@@ -4,11 +4,11 @@
           <div class="Alayer">
             <div class="Alayer-x">
               <div class="tubiao" >
-                <img v-if="index%2!=0" style="margin-top: 10px;" src="../../public/photo/compressed.png" width="80px" height="80px">
+                <img v-if="index%2!=0" style="margin-top: 10px;" src="../../public/photo/pdf.png" width="80px" height="80px">
                 <img v-else style="margin-top: 10px;" src="../../public/photo/Txt.png" width="80px" height="80px"> 
               </div>
               <div v-if="index%2==0" class="Alayer-text">大师傅啊.txt</div>
-              <div v-else class="Alayer-text">甲能.zip</div>
+              <div v-else class="Alayer-text">甲能.pdf</div>
               <div class="time">2022/08/09 16:40</div>
               <div style="height: 10px;"></div>
             </div>
