@@ -1,9 +1,9 @@
 <template>
   <div  :class="sidebartypes ? 'xlayer' :'xlayer2'">
-    <li style="float: left;list-style-type: none;" v-for="index in 16" :key="index">
-        <div @click="gto()" class="Alayer">
-          <div @mouseover="boxindex=index" @mouseleave="boxindex=null"  class="Alayer-x">
-            <div v-show="boxindex==index" ><el-checkbox v-model="checked"></el-checkbox></div>
+    <li style="float: left;list-style-type: none;" v-for="index in list" :key="index">
+        <div class="Alayer " >
+          <div @mouseover="boxindex=index" @mouseleave="boxindex=null"  :class="['Alayer-x',{'is-choice':checked[index]} ]">
+            <div  v-show="boxindex==index||checked[index]"><el-checkbox v-model="checked[index]"></el-checkbox></div>
             <div v-show="boxindex==index" class="choicebox">
               <el-dropdown trigger="click" placement="top-start">
                   <span class="el-dropdown-link">
@@ -13,13 +13,13 @@
                     <el-dropdown-item >下载</el-dropdown-item>
                     <el-dropdown-item >移至回收站</el-dropdown-item>
                     <el-dropdown-item >分享</el-dropdown-item>
-                    <el-dropdown-item >同步本地文件</el-dropdown-item>
+                    <el-dropdown-item >同步本地文件夹</el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
             </div>
             <div  class="tubiao" ><img style="margin-top: 10px;" src="../../public/photo/folder.png" width="100px" height="80px"></div>
-            <div v-if="index%2==0" class="Alayer-text">等你哦啊</div>
-            <div v-else class="Alayer-text">等你哦啊阿斯顿弄阿松大涡潮单双排女阿婆</div>
+            <div v-if="index%2==0" class="Alayer-text">未必哦擦</div>
+            <div v-else class="Alayer-text">年我无法就怕宋朝你们那么怕哇哦的骄傲没骄傲没骄傲没</div>
             <div class="time">2022/08/09 16:40</div>
             <div style="height: 10px;"></div>
           </div>
@@ -36,10 +36,15 @@
         //侧边栏状态
           sidebartypes:sessionStorage.getItem('sidebartype')=='true',
           //文件选择状态
-          checked:false,
+          checked:[],
           //悬浮于哪一个文件下标
           boxindex:null,
+          //文件列表长度
+          list:16,
        }
+   },
+   created(){
+    this.listnum()
    },
    mounted(){
     window.addEventListener("setItem", () => {
@@ -53,6 +58,13 @@
    methods:{
     gto(){
       this.$router.push('/folder')
+    },
+    //更新文件列表长度
+    listnum(){
+      this.checked=[]
+      for(var i=0;i<this.list;i++){
+        this.checked.push(false)
+      }
     },
    }
    }
@@ -128,6 +140,9 @@ body {
   width: 120px;
   max-height: 180px;
   cursor: pointer;
+}
+.is-choice{
+  background: rgb(241, 241, 241);
 }
 .Alayer-x:hover{
   background: rgb(241, 241, 241);

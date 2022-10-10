@@ -1,9 +1,9 @@
 <template>
   <div  :class="sidebartypes ? 'xlayer' :'xlayer2'">
-    <li style="float: left;list-style-type: none;" v-for="index in 16" :key="index">
-        <div class="Alayer">
-          <div @mouseover="boxindex=index" @mouseleave="boxindex=null"  class="Alayer-x">
-            <div  v-show="boxindex==index"><el-checkbox v-model="checked"></el-checkbox></div>
+    <li style="float: left;list-style-type: none;" v-for="index in list" :key="index">
+        <div class="Alayer " >
+          <div @mouseover="boxindex=index" @mouseleave="boxindex=null"  :class="['Alayer-x',{'is-choice':checked[index]} ]">
+            <div  v-show="boxindex==index||checked[index]"><el-checkbox v-model="checked[index]"></el-checkbox></div>
             <div v-show="boxindex==index" class="choicebox">
               <el-dropdown trigger="click" placement="top-start">
                   <span class="el-dropdown-link">
@@ -17,8 +17,8 @@
                 </el-dropdown>
             </div>
             <div  class="tubiao" ><img style="margin-top: 10px;" src="../../public/photo/video.png" width="80px" height="80px"></div>
-            <div v-if="index%2==0" class="Alayer-text">小飞棍.mp4</div>
-            <div v-else class="Alayer-text">疫情.mp4</div>
+            <div v-if="index%2==0" class="Alayer-text">米兰的小铁匠.mp4</div>
+            <div v-else class="Alayer-text">发如雪.mp4</div>
             <div class="time">2022/08/09 16:40</div>
             <div style="height: 10px;"></div>
           </div>
@@ -35,10 +35,15 @@
         //侧边栏状态
           sidebartypes:sessionStorage.getItem('sidebartype')=='true',
           //文件选择状态
-          checked:false,
+          checked:[],
           //悬浮于哪一个文件下标
           boxindex:null,
+          //文件列表长度
+          list:16,
        }
+   },
+   created(){
+    this.listnum()
    },
    mounted(){
     window.addEventListener("setItem", () => {
@@ -52,6 +57,13 @@
    methods:{
     gto(){
       this.$router.push('/folder')
+    },
+    //更新文件列表长度
+    listnum(){
+      this.checked=[]
+      for(var i=0;i<this.list;i++){
+        this.checked.push(false)
+      }
     },
    }
    }
@@ -127,6 +139,9 @@ body {
   width: 120px;
   max-height: 180px;
   cursor: pointer;
+}
+.is-choice{
+  background: rgb(241, 241, 241);
 }
 .Alayer-x:hover{
   background: rgb(241, 241, 241);
