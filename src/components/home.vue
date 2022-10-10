@@ -157,6 +157,7 @@ body {
   background: rgb(113, 113, 113);
 }
 .allbox{
+  z-index: 300;
   width: 100%;
   height: 30px;
   background: #ffffff;
