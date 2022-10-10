@@ -6,6 +6,7 @@ import photo from '../components/photo.vue'
 import video from '../components/video.vue'
 import file from '../components/file.vue'
 import folder from '../components/folder.vue'
+import recycle from '../components/recycle.vue'
 Vue.use(Router);
 
  
@@ -47,6 +48,13 @@ const routes = [
         component: folder,
         
       },
+      {
+        path: '/recycle',
+        name: 'recycle',
+        component: recycle,
+        
+      },
+      
       
   ];
   

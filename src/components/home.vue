@@ -1,9 +1,23 @@
 <template>
   <div  :class="sidebartypes ? 'xlayer' :'xlayer2'">
-    <li style="float: left;list-style-type: none;" v-for="index in 66" :key="index">
-        <div class="Alayer">
-          <div @click="gto()" class="Alayer-x">
-            <div class="tubiao" ><img style="margin-top: 10px;" src="../../public/photo/folder.png" width="100px" height="80px"></div>
+    <li style="float: left;list-style-type: none;" v-for="index in 16" :key="index">
+        <div @click="gto()" class="Alayer">
+          <div @mouseover="boxindex=index" @mouseleave="boxindex=null"  class="Alayer-x">
+            <div v-show="boxindex==index" ><el-checkbox v-model="checked"></el-checkbox></div>
+            <div v-show="boxindex==index" class="choicebox">
+              <el-dropdown trigger="click" placement="top-start">
+                  <span class="el-dropdown-link">
+                    <i class="el-icon-more"></i>
+                  </span>
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item >下载</el-dropdown-item>
+                    <el-dropdown-item >移至回收站</el-dropdown-item>
+                    <el-dropdown-item >分享</el-dropdown-item>
+                    <el-dropdown-item >同步本地文件</el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+            </div>
+            <div  class="tubiao" ><img style="margin-top: 10px;" src="../../public/photo/folder.png" width="100px" height="80px"></div>
             <div v-if="index%2==0" class="Alayer-text">等你哦啊</div>
             <div v-else class="Alayer-text">等你哦啊阿斯顿弄阿松大涡潮单双排女阿婆</div>
             <div class="time">2022/08/09 16:40</div>
@@ -21,6 +35,10 @@
        return {
         //侧边栏状态
           sidebartypes:sessionStorage.getItem('sidebartype')=='true',
+          //文件选择状态
+          checked:false,
+          //悬浮于哪一个文件下标
+          boxindex:null,
        }
    },
    mounted(){
@@ -50,6 +68,43 @@ body {
   padding:0;
   border:0;
 }
+.el-dropdown{
+  height: 10px;
+}
+.el-dropdown-link{
+  font-size: 15px;
+}
+.choicebox{
+  border-radius: 15px;
+  text-align: center;
+  line-height: 15px;
+  background: #ffffff;
+  position: absolute;
+  width: 30px;
+  height: 15px;
+  margin-left: 80px;
+  margin-top: 5px;
+}
+.el-checkbox {
+  position: absolute;
+  margin-top: 5px;
+  margin-left: 5px;
+}
+.el-checkbox >>> .el-checkbox__input{
+  width: 20px;
+  height: 20px;
+}
+.el-checkbox >>> .el-checkbox__inner{
+  width: 20px;
+  height: 20px;
+  border-radius: 50px;
+  
+}
+.el-checkbox >>> .el-checkbox__inner::after{
+  margin-top: 2px;
+  margin-left: 2px;
+}
+
 .xlayer{
   margin-top: 90px;
   position: absolute;

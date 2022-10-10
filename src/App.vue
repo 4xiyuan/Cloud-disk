@@ -50,8 +50,8 @@
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item >个人中心</el-dropdown-item>
                 <el-dropdown-item >我的分享</el-dropdown-item>
-                <el-dropdown-item >回收站</el-dropdown-item>
-                <el-dropdown-item >账号管理</el-dropdown-item>
+                <el-dropdown-item >待定</el-dropdown-item>
+                <el-dropdown-item >待定</el-dropdown-item>
                 <el-dropdown-item >退出登入</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
@@ -116,8 +116,8 @@
           usert:sessionStorage.getItem('users'),
           ind:100,
           sidebarnum:1,
-          routers:['/home','/photo','/video','/file'],
-          title:['全部文件','照片','音视频','我的隐私','待定1','待定2'],
+          routers:['/home','/photo','/video','/file','/recycle'],
+          title:['全部文件','照片','音视频','我的隐私','回收站','待定2'],
           searchText:null,
           //新建文件夹层是否渲染变量
           dialogVisible:false,
