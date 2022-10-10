@@ -130,6 +130,9 @@
     '$route' () {
       //判断是否登录
       this.initData();
+      //路由跳转时重置滚动条顶部
+      document.body.scrollTop = 0
+      document.documentElement.scrollTop = 0
     }
   },
   created(){
