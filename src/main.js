@@ -4,6 +4,7 @@ import router from './router/index.js'
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import axios from 'axios' 
+import uploader from 'vue-simple-uploader'
 
 axios.defaults.baseURL = '/api' //关键代码
 Vue.config.productionTip = false
@@ -54,7 +55,7 @@ Vue.prototype.setSessionItem = function (key, newVal) {
   return storage.setItem(key, newVal);
 };
 
-
+Vue.use(uploader)
 Vue.use(ElementUI);
 
 // Vue.prototype.$http = http;

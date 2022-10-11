@@ -21,13 +21,13 @@
                 <i class="el-icon-circle-plus-outline"></i>
               </span>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item >上传文件</el-dropdown-item>
-                <el-dropdown-item >上传文件夹</el-dropdown-item>
+                <el-dropdown-item @click.native="upload()" >上传文件</el-dropdown-item>
+                <el-dropdown-item @click.native="uploads()" >上传文件夹</el-dropdown-item>
                 <el-dropdown-item @click.native="dialogVisible = true">新建文件夹</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
           </div>
-          <div @click="gto('transmission')" class="transmission" title="上传列表">
+          <div @click="uploadlist=!uploadlist"  class="transmission" title="上传列表">
             <i class="el-icon-upload2"></i>
           </div>
       </div>
@@ -102,16 +102,61 @@
         </span>
       </el-dialog>
 
+      <div class="uploadbox">
+        <div id="global-uploader" class="global-uploader-single">
+        <!-- 上传 -->
+        <uploader
+          ref="uploader"
+          :options="initOptions"
+          :fileStatusText="fileStatusText"
+          :autoStart="false"
+          @file-added="onFileAdded"
+          @file-success="onFileSuccess"
+          @file-progress="onFileProgress"
+          @file-error="onFileError"
+          class="uploader-app"
+        >
+          <uploader-unsupport></uploader-unsupport>
+          <uploader-btn v-show="false" id="global-uploader-btn" ref="uploadBtn">选择文件</uploader-btn>
+          <uploader-btn v-show="false" id="global-uploader-btn" :directory="true" ref="uploadBtns">选择文件</uploader-btn>
+          <uploader-list style="height: 600px;" v-if="uploadlist" >
+            <div class="file-panel" slot-scope="props" >
+              <div class="file-title">
+                <div class="title">文件列表</div>
+                <span @click="uploadlist=false" style="right: 20px;margin-top: -25px;position: absolute;cursor: pointer;">—</span>
+              </div>
 
-      
-      
+              <ul class="file-list">
+                <li
+                  class="file-item"
+                  v-for="file in props.fileList"
+                  :key="file.id">
+                  <uploader-file
+                    :class="['file_' + file.id, customStatus]"
+                    ref="files"
+                    :file="file"
+                    :list="true"
+                  ></uploader-file>
+                </li>
+                <div class="no-file" v-if="!props.fileList.length">
+                  暂无待上传文件
+                </div>
+              </ul>
+            </div>
+          </uploader-list>
+        </uploader>
+      </div>
+      </div>
   </div>
 </template>
 
 <script type="text/javascript">
+import SparkMD5 from 'spark-md5'
    export default {
+    
    data() {
        return {
+          uploadlist:false,
           index:sessionStorage.getItem('sidebartype')=='true',
           usert:sessionStorage.getItem('users'),
           ind:100,
@@ -123,6 +168,48 @@
           dialogVisible:false,
           //新建文件夹名称
           NewFolderName:null,
+
+          //上传组件配置设置
+          initOptions: {
+            target: 'http://localhost:3000/upload',
+            chunkSize: '2048000',
+            fileParameterName: 'file',
+            maxChunkRetries: 3,
+            // 是否开启服务器分片校验
+            testChunks: true,
+            // 服务器分片校验函数，秒传及断点续传基础
+            checkChunkUploadedByResponse: function (chunk, message) {
+              let skip = false
+
+              try {
+                let objMessage = JSON.parse(message)
+                if (objMessage.skipUpload) {
+                  skip = true
+                } else {
+                  skip = (objMessage.uploaded || []).indexOf(chunk.offset + 1) >= 0
+                }
+              } catch (e) {}
+
+              return skip
+            },
+            query: (file, chunk) => {
+              return {
+                ...file.params
+              }
+            }
+          },
+          //上传状态提示
+          fileStatusText: {
+            success: '上传成功',
+            error: '上传失败',
+            uploading: '上传中',
+            paused: '已暂停',
+            waiting: '等待上传'
+          },
+          panelShow: false, //选择文件后，展示上传panel
+          collapse: false,
+          customParams: {},
+          customStatus: ''
        }
    },
 
@@ -138,7 +225,26 @@
   created(){
     this.initData();
   },
+  computed: {
+    // Uploader实例
+    uploader() {
+      return this.$refs.uploader.uploader
+    }
+  },
    methods:{
+    //选择好上传文件后触发函数
+    onFileAdded(){
+      this.uploadlist=true
+    },
+    //点击上传文件
+    upload(){
+        this.$refs.uploadBtn.$el.click()
+    },
+    //点击上传文件夹s
+    uploads(){
+        this.$refs.uploadBtns.$el.click()
+    },
+    
     types(){
       this.index = !this.index
       this.setSessionItem('sidebartype',this.index+'')
@@ -170,6 +276,41 @@
 </script>
 
 <style >
+.no-file{
+  margin-top: 100px;
+  margin-left: 170px;
+}
+
+.global-uploader-single{
+  width: 96%;
+  margin-left: 2%;
+  margin-top: 10px;
+}
+ .file-list {
+      position: relative;
+      height: 240px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      background-color: #fff;
+      transition: all 0.3s;
+
+      
+    }
+.file-item {
+        background-color: #fff;
+      }
+
+.uploadbox{
+  box-shadow: 0 8px 32px 0 rgba(47, 47, 47, 0.37);
+  overflow: hidden;
+  width: 500px;
+  position: fixed;
+  z-index: 2000;
+  border-radius: 20px;
+  background: #ffffff;
+  right: 10px;
+  bottom: 10px;
+}
 
 
 
