@@ -20,7 +20,7 @@
                   </el-dropdown-menu>
                 </el-dropdown>
             </div>
-            <div  class="tubiao" ><img style="margin-top: 10px;" src="../../public/photo/video.png" width="80px" height="80px"></div>
+            <div  class="tubiao" ><img style="margin-top: 10px;" src="../../public/photo/mp4.png" width="80px" height="80px"></div>
             <div v-if="index%2==0" class="Alayer-text">黑色毛衣.mp4</div>
             <div v-else class="Alayer-text">发如雪.mp4</div>
             <div class="time">2022/08/09 16:40</div>

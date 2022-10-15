@@ -101,59 +101,37 @@
           <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
         </span>
       </el-dialog>
-
-      <div class="uploadbox">
-        <div id="global-uploader" class="global-uploader-single">
-        <!-- 上传 -->
-        <uploader
-          ref="uploader"
-          :options="initOptions"
-          :fileStatusText="fileStatusText"
-          :autoStart="false"
-          @file-added="onFileAdded"
-          @file-success="onFileSuccess"
-          @file-progress="onFileProgress"
-          @file-error="onFileError"
-          class="uploader-app"
-        >
-          <uploader-unsupport></uploader-unsupport>
-          <uploader-btn v-show="false" id="global-uploader-btn" ref="uploadBtn">选择文件</uploader-btn>
-          <uploader-btn v-show="false" id="global-uploader-btn" :directory="true" ref="uploadBtns">选择文件</uploader-btn>
-          <uploader-list style="height: 600px;" v-if="uploadlist" >
-            <div class="file-panel" slot-scope="props" >
-              <div class="file-title">
-                <div class="title">文件列表</div>
-                <span @click="uploadlist=false" style="right: 20px;margin-top: -25px;position: absolute;cursor: pointer;">—</span>
+      
+      <!-- 上传列表 -->
+      <div v-show="uploadlist" class="uploadbox">
+        <div class="uploadtext"></div>
+        <div >
+          <li v-if="filelist" v-for="item,index in filelist" :key="index" style="list-style-type: none;">
+            <div class="n-uploadbox" :style="'background: linear-gradient(rgb(122, 220, 255) 0 0)left/'+item[0].jindu+1+'% 100px no-repeat;'">
+              <div style="height:10px;"></div>
+              <div class="imgs">
+                <img :src="require('../public/photo/'+item[0].type+'.png')" width="60px" height="60px">
               </div>
-
-              <ul class="file-list">
-                <li
-                  class="file-item"
-                  v-for="file in props.fileList"
-                  :key="file.id">
-                  <uploader-file
-                    :class="['file_' + file.id, customStatus]"
-                    ref="files"
-                    :file="file"
-                    :list="true"
-                  ></uploader-file>
-                </li>
-                <div class="no-file" v-if="!props.fileList.length">
-                  暂无待上传文件
-                </div>
-              </ul>
+              <div style="margin-left: 95px;margin-top: -65px;font-size:20px;width:190px;-webkit-box-orient: vertical;display: -webkit-box;overflow-wrap: break-word;overflow:hidden;text-overflow:ellipsis;-webkit-line-clamp:1;">{{item[0].filename}}</div>
+              <div style="margin-left: 95px;margin-top: 10px;font-size:20px;">{{item[0].filesize}}</div>
+              <div style="margin-left: 340px;margin-top: -40px;font-size:20px;">{{item[0].jindu+1}}%</div>
             </div>
-          </uploader-list>
-        </uploader>
+          </li>
+        </div>
       </div>
+      <uploads v-show="false" ref="uploads" v-on:numdata="uploaddata" v-on:jindu="uploadjindu"></uploads></uploads>
       </div>
+      
   </div>
 </template>
 
 <script type="text/javascript">
 import SparkMD5 from 'spark-md5'
+import upload from '../src/upload.vue'
    export default {
-    
+    components: {
+    'uploads': upload,
+  },
    data() {
        return {
           uploadlist:false,
@@ -168,48 +146,11 @@ import SparkMD5 from 'spark-md5'
           dialogVisible:false,
           //新建文件夹名称
           NewFolderName:null,
+          //上传文件列表
+          filelist:[],
+          //默认上传文件列表长度
+          num:0,
 
-          //上传组件配置设置
-          initOptions: {
-            target: 'http://localhost:3000/upload',
-            chunkSize: '2048000',
-            fileParameterName: 'file',
-            maxChunkRetries: 3,
-            // 是否开启服务器分片校验
-            testChunks: true,
-            // 服务器分片校验函数，秒传及断点续传基础
-            checkChunkUploadedByResponse: function (chunk, message) {
-              let skip = false
-
-              try {
-                let objMessage = JSON.parse(message)
-                if (objMessage.skipUpload) {
-                  skip = true
-                } else {
-                  skip = (objMessage.uploaded || []).indexOf(chunk.offset + 1) >= 0
-                }
-              } catch (e) {}
-
-              return skip
-            },
-            query: (file, chunk) => {
-              return {
-                ...file.params
-              }
-            }
-          },
-          //上传状态提示
-          fileStatusText: {
-            success: '上传成功',
-            error: '上传失败',
-            uploading: '上传中',
-            paused: '已暂停',
-            waiting: '等待上传'
-          },
-          panelShow: false, //选择文件后，展示上传panel
-          collapse: false,
-          customParams: {},
-          customStatus: ''
        }
    },
 
@@ -220,25 +161,31 @@ import SparkMD5 from 'spark-md5'
       //路由跳转时重置滚动条顶部
       document.body.scrollTop = 0
       document.documentElement.scrollTop = 0
-    }
+      
+    },
   },
   created(){
     this.initData();
   },
-  computed: {
-    // Uploader实例
-    uploader() {
-      return this.$refs.uploader.uploader
-    }
-  },
    methods:{
-    //选择好上传文件后触发函数
-    onFileAdded(){
-      this.uploadlist=true
+    uploadjindu(data){
+      for(var i =0;i<this.filelist.length;i++){
+        if(this.filelist[i][0].filename==data[0].filename){
+          this.filelist[i][0].jindu = data[0].jindu
+        }
+      }
     },
+    uploaddata(data){
+      console.log(data)
+      this.filelist.push(data)
+      // const map = new Map()
+      // const newArr = this.filelist.filter(key => !map.has(key.filename) && map.set(key.filename, 1))
+      // this.filelist = newArr
+    },
+    //选择好上传文件后触发函数
     //点击上传文件
     upload(){
-        this.$refs.uploadBtn.$el.click()
+        this.$refs.uploads.shang()
     },
     //点击上传文件夹s
     uploads(){
@@ -276,34 +223,39 @@ import SparkMD5 from 'spark-md5'
 </script>
 
 <style >
-.no-file{
-  margin-top: 100px;
-  margin-left: 170px;
+.imgs{
+  width: 60px;
+  height: 60px;
+  margin-left: 20px;
+  
 }
-
-.global-uploader-single{
-  width: 96%;
-  margin-left: 2%;
-  margin-top: 10px;
+.bottombox{
+  background: rgb(21, 181, 255);
+  position: absolute;
+  height: 80px;
+  
 }
- .file-list {
-      position: relative;
-      height: 240px;
-      overflow-x: hidden;
-      overflow-y: auto;
-      background-color: #fff;
-      transition: all 0.3s;
+.n-uploadbox{
 
-      
-    }
-.file-item {
-        background-color: #fff;
-      }
+  width: 100%;
+  border-bottom: 1px rgb(210, 210, 210) solid;
+  height: 80px;
+}
+.uploadtext{
+  width: 100%;
+  height: 10px;
+  text-align: center;
+  line-height: 40px;
+  font-size: 20px;
+}
 
 .uploadbox{
+  
   box-shadow: 0 8px 32px 0 rgba(47, 47, 47, 0.37);
-  overflow: hidden;
-  width: 500px;
+  overflow: auto;
+  width: 400px;
+  height:500px ;
+  max-height:600px ;
   position: fixed;
   z-index: 2000;
   border-radius: 20px;
@@ -311,7 +263,9 @@ import SparkMD5 from 'spark-md5'
   right: 10px;
   bottom: 10px;
 }
-
+.uploadbox::-webkit-scrollbar {
+  display: none;
+}
 
 
 *{

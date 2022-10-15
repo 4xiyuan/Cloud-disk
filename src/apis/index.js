@@ -7,10 +7,18 @@ export function userlogin(param) {
 		method: 'get',
 	})
 }
-
+//注册
 export function userregister(param) {
     return httpRequest({
 		url: '/api/login',
+		method: 'post',
+		data:param,
+	})
+}
+//上传
+export function upload(param) {
+    return httpRequest({
+		url: '/api/upload/'+param.id,
 		method: 'post',
 		data:param,
 	})

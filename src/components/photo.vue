@@ -20,7 +20,7 @@
                   </el-dropdown-menu>
                 </el-dropdown>
             </div>
-            <div  class="tubiao" ><img style="margin-top: 10px;" src="../../public/photo/tu.png" width="80px" height="80px"></div>
+            <div  class="tubiao" ><img style="margin-top: 10px;" src="../../public/photo/png.png" width="80px" height="80px"></div>
             <div v-if="index%2==0" class="Alayer-text">小飞棍.png</div>
             <div v-else class="Alayer-text">单车.jpg</div>
             <div class="time">2022/08/09 16:40</div>
