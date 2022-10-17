@@ -1,13 +1,26 @@
 <template>
   <div id="app">
-    <el-upload  action :multiple="true" :auto-upload="false" :show-file-list="true" :on-change="changeFile" :before-upload="before">
-      <button ref="me">点击上传</button>
+    <el-upload ref="updata"  action :multiple="true"  :auto-upload="false" :show-file-list="false" :on-change="changeFile">
+      <button ref="me"></button>
     </el-upload>
+    
+    <div style="width:600px">
+      <li v-for="item,index in filelist" :key="index" style="list-style-type: none;">
+        <div class="m2">
+          <!-- <span class="m2-1">{{item.name}}</span>
+          <span class="m2-2">{{item.size}}</span>
+          <span v-if="item.bott&&item.jindu>0&&item.jindu<99" @click="handleBtn(index)" class="m2-3">暂停</span>
+          <span v-if="!item.bott&&item.jindu>0&&item.jindu<99" @click="handleBtns(index)" class="m2-4">继续</span>
+          <span class="m2-5">{{item.jindu+1}}</span> -->
+        </div>
+      </li>
+    </div>
+    
   </div>
 </template>
 
 <script>
-import { fileParse } from "../src/assets/utils";
+import { fileParse } from "./assets/utils";
 import axios from "axios";
 import SparkMD5 from "spark-md5";
 
@@ -15,11 +28,12 @@ export default {
   name: "App",
   data() {
     return {
-      //进度条
       total: 0,
-      //暂停或继续的按钮操作
+      video: null,
       btn: false,
       filelist:[],
+      partList:[],
+      requestList:[],
     };
   },
   filters: {
@@ -31,129 +45,162 @@ export default {
     },
   },
   methods: {
-    before(file){
-        console.log(1)
-        
-    },
+    //触发上传按钮事件
     shang(){
-        this.$refs.me.click();
+      this.$refs.me.click()
     },
     async changeFile(file) {
       if (!file) return;
-      //传送待上传的的文件给父组件
-      this.filelist=[]
-      let b = {
-        filename:file.name,
-        filesize:(file.size/1024/1024).toFixed(2)+"MB",
-        type:/\.([0-9a-zA-Z]+)$/i.exec(file.name)[1] ? /\.([0-9a-zA-Z]+)$/i.exec(file.name)[1].toLowerCase():"",
-        jindu:-1,
-
+      let a = {
+        name:file.name,
+        size:(file.size/1024/1024).toFixed(2)>1000 ? (file.size/1024/1024/1024).toFixed(2)+"GB":(file.size/1024/1024).toFixed(2)+"MB",
+        jindu:0,
+        bott:true,
+        type:/\.([0-9a-zA-Z]+)$/i.exec(file.name)[1]?/\.([0-9a-zA-Z]+)$/i.exec(file.name)[1]:""
       }
-      this.filelist.push(b)
+      this.filelist.push(a)
       this.$emit("numdata",this.filelist)
-      
       file = file.raw;
-      // 解析为BUFFER数据
-      // 我们会把文件切片处理：把一个文件分割成为好几个部分（固定数量/固定大小）
-      // 每一个切片有自己的部分数据和自己的名字
-      // HASH_1.mp4
-      // HASH_2.mp4
-      // ...
-      let buffer = await fileParse(file, "buffer"),
-        spark = new SparkMD5.ArrayBuffer(),
-        hash,
-        suffix;
-      spark.append(buffer);
-      hash = spark.end();
-      suffix = /\.([0-9a-zA-Z]+)$/i.exec(file.name)[1];
-
       // 创建100个切片
       let partList = [],
         partsize = file.size / 100,
         cur = 0;
+      let datas = {
+          data:[],
+          "type":1
+        }
       for (let i = 0; i < 100; i++) {
         let item = {
           chunk: file.slice(cur, cur + partsize),
           filename: file.name,
-          filesiez:file.size
         };
         cur += partsize;
-        partList.push(item);
+        datas.data.push(item)
+        
       }
+      partList.push(datas);
 
       this.partList = partList;
-      this.hash = hash;
-      this.sendRequest();
+      this.sendRequest(file.name);
     },
-    async sendRequest() {
+    async sendRequest(name) {
       // 根据100个切片创造100个请求（集合）
       let requestList = [];
-      this.partList.forEach((item, index) => {
+      this.partList[0].data.forEach((item, index) => {
         // 每一个函数都是发送一个切片的请求
         let fn = () => {
           let formData = new FormData();
-          
           formData.append("MFile", item.chunk);
-          formData.append("chunk", index);
-          formData.append("chunks", 100);
-          formData.append("originName",item.filename);
+          formData.append("shunk", index);
+          formData.append("shunks", 100);
+          formData.append("fileName", item.filename);
           return axios
             .post("http://localhost:8089/api/upload/1", formData, {
               headers: { "Content-Type": "multipart/form-data" },
             })
             .then((result) => {
               result = result.data;
-              this.filelist=[]
-              if(result.code==200){
-                let a = {
-                    filename:item.filename,
-                    jindu:index
-                }
-                this.filelist.push(a)
-                this.$emit("jindu",this.filelist)
+              if(result.code == 200&&result.msg=="合并成功，数据库记录已添加 ！"){
+                for(let x =0;x<this.filelist.length;x++){
+                        if(this.filelist[x].name==item.filename){
+                          this.filelist[x].status=1
+                        }
+                      }
+              }
+              if (result.code == 200) {
+                // console.log("已经传送完第"+index+"片")
               }
               if (result.code == 200&&result.msg=="分片成功！") {
-                // 传完的切片我们把它移除掉
-                // this.partList.splice(index, 1);
+                      for(let x =0;x<this.filelist.length;x++){
+                        if(this.filelist[x].name==item.filename){
+                          this.filelist[x].jindu+=1
+                        }
+                        let jindu = {
+                          index:x,
+                          jindu:this.filelist[x].jindu
+                        }
+                        this.$emit("uploadjindu",jindu)
+                      }
               }
             });
         };
         requestList.push(fn);
-        
       });
-      
-      // 传递：并行(ajax.abort())/串行(基于标志控制不发送)
-      let i = 0;
-      let send = async () => {
-        // 已经中断则不再上传
-        if (this.abort) return;
-        //从上次暂停那部分开始
-        // if(this.total!=0&&i<=this.total){
-        //   i = this.total
-        // }
-        if (i >= requestList.length) {
-          // 都传完了
-          return;
+      let uname = {
+          "name":name,
+          "data":requestList,
+          "type":1
         }
-        await requestList[i]()
-        i++;
+      this.requestList.push(uname)
+      // 传递：并行(ajax.abort())/串行(基于标志控制不发送)
+      let send = async (name) => {
+        for(var b=0;b<this.requestList.length;b++){
+          if(this.requestList[b].name==name&&this.requestList[b].type==1){
+            if (this.requestList[b].data.length<=0) {
+              // 都传完了
+              return;
+            }
+            await this.requestList[b].data[0]();
+            this.requestList[b].data.splice(0,1)
+            send(name);
+          }
+        }
         
-        send();
       };
-      send();
+      send(name);
     },
-    handleBtn() {
-      if (this.btn) {
-        //断点续传
-        this.abort = false;
-        this.btn = false;
-        this.sendRequest();
-        return;
+    handleBtn(index) {
+      this.filelist[index].bott = !this.filelist[index].bott
+      this.requestList[index].type=0
+    },
+    handleBtns(index){
+      this.requestList[index].type=1
+      this.filelist[index].bott = !this.filelist[index].bott
+      let sends = async(index)=>{
+        if(this.requestList[index].type==1){
+          if (this.requestList[index].data.length<=0) {
+              // 传完了
+              return;
+            }
+            await this.requestList[index].data[0]();
+            this.requestList[index].data.splice(0,1)
+            sends(index);
+        }else{
+          return
+        }
       }
-      //暂停上传
-      this.btn = true;
-      this.abort = true;
-    },
+      sends(index)
+    }
   },
 };
 </script>
+<style>
+.m2{
+  border: 1px red solid;
+  width: 100%;
+  height: 50px;
+}
+.m2-1{
+  float: left;
+}
+.m2-2{
+  position: absolute;
+  left: 20px;
+  margin-top: 25px;
+}
+.m2-3{
+  position: absolute;
+  right: 450px;
+  margin-top: 15px;
+}
+.m2-4{
+   position: absolute;
+  right: 450px;
+  margin-top: 15px;
+}
+.m2-5{
+  float: right;
+  margin-right: 10px;
+  margin-top: 15px;
+}
+</style>

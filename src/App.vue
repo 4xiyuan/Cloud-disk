@@ -22,7 +22,6 @@
               </span>
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item @click.native="upload()" >上传文件</el-dropdown-item>
-                <el-dropdown-item @click.native="uploads()" >上传文件夹</el-dropdown-item>
                 <el-dropdown-item @click.native="dialogVisible = true">新建文件夹</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
@@ -104,18 +103,27 @@
       
       <!-- 上传列表 -->
       <div v-show="uploadlist" class="uploadbox">
-        <div class="uploadtext"></div>
-        <div >
-          <li v-if="filelist" v-for="item,index in filelist" :key="index" style="list-style-type: none;">
-            <div class="n-uploadbox" :style="'background: linear-gradient(rgb(122, 220, 255) 0 0)left/'+item[0].jindu+1+'% 100px no-repeat;'">
+        <div class="uploadtext">上传列表</div>
+        <div class="xuanfu"></div>
+        <div class="upload-box">
+          <li v-if="filelist" v-for="item,index in filelist[0]" :key="index" style="list-style-type: none;">
+            <div class="bottombox" :style="'width:'+(item.jindu+1)+'%;'"></div>
+            <div class="n-uploadbox" >
               <div style="height:10px;"></div>
               <div class="imgs">
-                <img :src="require('../public/photo/'+item[0].type+'.png')" width="60px" height="60px">
+                <img :src="require('../public/photo/'+item.type+'.png')" width="60px" height="60px">
               </div>
-              <div style="margin-left: 95px;margin-top: -65px;font-size:20px;width:190px;-webkit-box-orient: vertical;display: -webkit-box;overflow-wrap: break-word;overflow:hidden;text-overflow:ellipsis;-webkit-line-clamp:1;">{{item[0].filename}}</div>
-              <div style="margin-left: 95px;margin-top: 10px;font-size:20px;">{{item[0].filesize}}</div>
-              <div style="margin-left: 340px;margin-top: -40px;font-size:20px;">{{item[0].jindu+1}}%</div>
+              <div style="margin-left: 95px;margin-top: -60px;font-size:18px;width:190px;-webkit-box-orient: vertical;display: -webkit-box;overflow-wrap: break-word;overflow:hidden;text-overflow:ellipsis;-webkit-line-clamp:1;">{{item.name}}</div>
+              <div style="margin-left: 95px;margin-top: 15px;font-size:14px;">{{item.size}}</div>
+              <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100" style="margin-left: 340px;margin-top: -40px;font-size:20px;">{{item.jindu+1}}%</div>
+              <div v-if="(item.jindu+1)<=0" style="margin-left: 320px;margin-top: -40px;font-size:18px;">解析中</div>
+              <div v-if="(item.jindu+1)==100" style="margin-left: 300px;margin-top: -40px;font-size:18px;">上传完成</div>
+              <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100"  style="margin-left: 250px;margin-top: -25px;font-size:18px;">
+                <div v-if="(item.bott)" @click="zan(index)">暂停</div>
+                <div v-else @click="ji(index)">继续</div>
+              </div>
             </div>
+            <div v-if="index==filelist[0].length-1" style="height:30px"></div>
           </li>
         </div>
       </div>
@@ -150,6 +158,8 @@ import upload from '../src/upload.vue'
           filelist:[],
           //默认上传文件列表长度
           num:0,
+          //暂停或继续
+          stops:true,
 
        }
    },
@@ -169,23 +179,27 @@ import upload from '../src/upload.vue'
   },
    methods:{
     uploadjindu(data){
-      for(var i =0;i<this.filelist.length;i++){
-        if(this.filelist[i][0].filename==data[0].filename){
-          this.filelist[i][0].jindu = data[0].jindu
-        }
-      }
+      this.filelist[data.index].jindu = data.jindu
     },
     uploaddata(data){
-      console.log(data)
       this.filelist.push(data)
-      // const map = new Map()
-      // const newArr = this.filelist.filter(key => !map.has(key.filename) && map.set(key.filename, 1))
-      // this.filelist = newArr
+      this.uploadlist = true
+      const map = new Map()
+      const newArr = this.filelist.filter(key => !map.has(key.filename) && map.set(key.filename, 1))
+      this.filelist = newArr
     },
     //选择好上传文件后触发函数
     //点击上传文件
     upload(){
         this.$refs.uploads.shang()
+    },
+    //暂停
+    zan(index){
+      this.$refs.uploads.handleBtn(index)
+    },
+    //继续
+    ji(index){
+      this.$refs.uploads.handleBtns(index)
     },
     //点击上传文件夹s
     uploads(){
@@ -223,6 +237,18 @@ import upload from '../src/upload.vue'
 </script>
 
 <style >
+.xuanfu{
+  position: fixed;
+  bottom: 10px;
+  height: 30px;
+  border-radius: 0px 0px 20px 20px;
+  z-index: 999;
+  background: rgb(255, 255, 255);
+  width: 400px;
+}
+.upload-box{
+  margin-top: 30px;
+}
 .imgs{
   width: 60px;
   height: 60px;
@@ -230,23 +256,26 @@ import upload from '../src/upload.vue'
   
 }
 .bottombox{
-  background: rgb(21, 181, 255);
-  position: absolute;
+  background: rgb(138, 255, 199);
   height: 80px;
   
 }
 .n-uploadbox{
-
   width: 100%;
+  position: absolute;
+  margin-top: -80px;
   border-bottom: 1px rgb(210, 210, 210) solid;
   height: 80px;
 }
 .uploadtext{
-  width: 100%;
-  height: 10px;
+  width: 400px;
+  height: 30px;
+  border-radius: 20px 20px 0px 0px;
+  background: rgb(255, 255, 255);
+  position: fixed;
+  z-index: 2;
   text-align: center;
-  line-height: 40px;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .uploadbox{
