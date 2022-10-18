@@ -119,8 +119,8 @@
               <div v-if="(item.jindu+1)<=0" style="margin-left: 320px;margin-top: -40px;font-size:18px;">解析中</div>
               <div v-if="(item.jindu+1)==100" style="margin-left: 300px;margin-top: -40px;font-size:18px;">上传完成</div>
               <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100"  style="margin-left: 250px;margin-top: -25px;font-size:18px;">
-                <div v-if="(item.bott)" @click="zan(index)">暂停</div>
-                <div v-else @click="ji(index)">继续</div>
+                <div v-if="(item.bott)" @click="zan(index)"><img :src="require('../public/photo/zanting.png')" width="30px" height="30px"></div>
+                <div v-else @click="ji(index)"><img :src="require('../public/photo/jixu.png')" width="35px" height="35px"></div>
               </div>
             </div>
             <div v-if="index==filelist[0].length-1" style="height:30px"></div>

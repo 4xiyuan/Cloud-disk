@@ -11,7 +11,7 @@
                     <i class="el-icon-more"></i>
                   </span>
                   <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item >下载</el-dropdown-item>
+                    <el-dropdown-item @click.native="down()" >下载</el-dropdown-item>
                     <el-dropdown-item >重命名</el-dropdown-item>
                     <el-dropdown-item >移动</el-dropdown-item>
                     <el-dropdown-item >分享</el-dropdown-item>
@@ -37,11 +37,12 @@
       <div class="selectbox" title="放入回收站"><img style="margin-top: 5px;" src="../../public/photo/delete.png" width="20px" height="20px"></div>
       <div class="selectbox" title="取消多选"><img style="margin-top: 5px;" src="../../public/photo/cancel.png" width="20px" height="20px"></div>
     </div>
-    
+    <a v-show="false" href="xxx.txt" download="xxx.txt"></a>
   </div> 
 </template>
 
 <script type="text/javascript">
+import {download} from "../apis/index"
    export default {
    data() {
        return {
@@ -104,6 +105,24 @@
       }
       
     },
+    down(){
+      let data = {
+        filePath:"D:@bishe@file@1@大视频.mp4",
+        id:"1"
+      }
+      download(data).then((res=>{
+        var fileName = "xiao.mp4"
+        let blob = new Blob([res.request.response], {type:"application/octet-stream"});
+        var downloadElement = document.createElement("a");
+        var href = window.URL.createObjectURL(blob); //常见下载的链接
+        downloadElement.href = href;
+        downloadElement.download = fileName; //下载后文件名
+        document.body.appendChild(downloadElement);
+        downloadElement.click(); //点击下载
+        document.body.removeChild(downloadElement); //下载完成移除元素
+        window.URL.revokeObjectURL(href);  //释放blob对象
+      }))
+    }
    }
    }
 </script>

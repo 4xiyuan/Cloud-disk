@@ -23,3 +23,11 @@ export function upload(param) {
 		data:param,
 	})
 }
+//下载
+export function download(param) {
+    return httpRequest({
+		url: '/api/download/'+param.id+'/'+param.filePath,
+		method: 'get',
+		responseType:'blob'
+	})
+}
