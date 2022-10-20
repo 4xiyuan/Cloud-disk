@@ -76,7 +76,7 @@
           username:this.username,
           password:this.password
         }
-        userlogin(data).then((res=>{
+         userlogin(data).then(( res=>{
           if(res.data.code==200){
             sessionStorage.setItem('users','true')
             sessionStorage.setItem('sidebartype','true')

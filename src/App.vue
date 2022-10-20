@@ -115,12 +115,15 @@
               </div>
               <div style="margin-left: 95px;margin-top: -60px;font-size:18px;width:190px;-webkit-box-orient: vertical;display: -webkit-box;overflow-wrap: break-word;overflow:hidden;text-overflow:ellipsis;-webkit-line-clamp:1;">{{item.name}}</div>
               <div style="margin-left: 95px;margin-top: 15px;font-size:14px;">{{item.size}}</div>
-              <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100" style="margin-left: 340px;margin-top: -40px;font-size:20px;">{{item.jindu+1}}%</div>
+              <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100" style="margin-left: 360px;margin-top: -10px;font-size:16px;">{{item.jindu+1}}%</div>
               <div v-if="(item.jindu+1)<=0" style="margin-left: 320px;margin-top: -40px;font-size:18px;">解析中</div>
               <div v-if="(item.jindu+1)==100" style="margin-left: 300px;margin-top: -40px;font-size:18px;">上传完成</div>
-              <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100"  style="margin-left: 250px;margin-top: -25px;font-size:18px;">
-                <div v-if="(item.bott)" @click="zan(index)"><img :src="require('../public/photo/zanting.png')" width="30px" height="30px"></div>
-                <div v-else @click="ji(index)"><img :src="require('../public/photo/jixu.png')" width="35px" height="35px"></div>
+              <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100"  style="margin-left: 300px;margin-top: -60px;font-size:30px;cursor: pointer;position: absolute;">
+                <div v-if="(item.bott)" @click="zan(index)"><i class="el-icon-video-pause"></i></div>
+                <div v-else @click="ji(index)"><i class="el-icon-caret-right"></i></div>
+              </div>
+              <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100"  style="margin-left: 360px;margin-top: -80px;font-size:22px;cursor: pointer;position: absolute;">
+                <i @click="guanbi(index)" class="el-icon-close"></i>
               </div>
             </div>
             <div v-if="index==filelist[0].length-1" style="height:30px"></div>
@@ -136,6 +139,7 @@
 <script type="text/javascript">
 import SparkMD5 from 'spark-md5'
 import upload from '../src/upload.vue'
+import {endUpload} from '../src/apis/index'
    export default {
     components: {
     'uploads': upload,
@@ -155,7 +159,15 @@ import upload from '../src/upload.vue'
           //新建文件夹名称
           NewFolderName:null,
           //上传文件列表
-          filelist:[],
+          filelist:[
+            // {
+            //   0:{jindu:68,
+            //   type:'mp4',
+            //   bott:false,
+            //   name:"测试文件阿斯顿耨爱无能到位.mp4",
+            //   size:"597.6MB"},
+            // }
+          ],
           //默认上传文件列表长度
           num:0,
           //暂停或继续
@@ -178,9 +190,20 @@ import upload from '../src/upload.vue'
     this.initData();
   },
    methods:{
-    uploadjindu(data){
-      this.filelist[data.index].jindu = data.jindu
+    //根据下标关闭文件下上传
+    async guanbi(index){
+      await endUpload()
+      this.$refs.uploads.deletes(index)
     },
+    //更新文件的上传进度
+    async uploadjindu(data){
+      if(data.jindu>99){
+        this.filelist[data.index].jindu=99
+      }else{
+        this.filelist[data.index].jindu = data.jindu
+      }
+    },
+    //获取待上传的文件信息
     uploaddata(data){
       this.filelist.push(data)
       this.uploadlist = true

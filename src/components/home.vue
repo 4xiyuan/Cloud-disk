@@ -37,12 +37,13 @@
       <div class="selectbox" title="放入回收站"><img style="margin-top: 5px;" src="../../public/photo/delete.png" width="20px" height="20px"></div>
       <div class="selectbox" title="取消多选"><img style="margin-top: 5px;" src="../../public/photo/cancel.png" width="20px" height="20px"></div>
     </div>
-    <a v-show="false" href="xxx.txt" download="xxx.txt"></a>
+    <!-- <a v-show="false" ref="downs" href="xxx.txt" download="xxx.txt"></a> -->
   </div> 
 </template>
 
 <script type="text/javascript">
-import {download} from "../apis/index"
+import download from "downloadjs";
+import {downloads} from "../apis/index"
    export default {
    data() {
        return {
@@ -55,7 +56,7 @@ import {download} from "../apis/index"
           //悬浮于哪一个文件下标
           boxindex:null,
           //文件列表长度
-          list:66,
+          list:16,
           //全选
           checkeds:false,
        }
@@ -105,24 +106,57 @@ import {download} from "../apis/index"
       }
       
     },
-    down(){
+    async down(){
+      //文件流
+      // let data = {
+      //   fileNath:"D:@bishe@file@1@大视频.mp4",
+      //   id:"1",
+      // }
+      // download(data).then((res=>{
+      //   // console.log(res)
+      //   // var fileName = "xiao.mp4"
+      //   // let blob = new Blob([res.request.response], {type:"application/octet-stream"});
+      //   // var downloadElement = document.createElement("a");
+      //   // var href = window.URL.createObjectURL(blob); //常见下载的链接
+      //   // downloadElement.href = href;
+      //   // downloadElement.download = fileName; //下载后文件名
+      //   // document.body.appendChild(downloadElement);
+      //   // downloadElement.click(); //点击下载
+      //   // document.body.removeChild(downloadElement); //下载完成移除元素
+      //   // window.URL.revokeObjectURL(href);  //释放blob对象
+      // }))
+
+      //url地址
       let data = {
-        filePath:"D:@bishe@file@1@大视频.mp4",
+        fileName:"大视频.mp4",
         id:"1"
       }
-      download(data).then((res=>{
-        var fileName = "xiao.mp4"
-        let blob = new Blob([res.request.response], {type:"application/octet-stream"});
-        var downloadElement = document.createElement("a");
-        var href = window.URL.createObjectURL(blob); //常见下载的链接
-        downloadElement.href = href;
-        downloadElement.download = fileName; //下载后文件名
-        document.body.appendChild(downloadElement);
-        downloadElement.click(); //点击下载
-        document.body.removeChild(downloadElement); //下载完成移除元素
-        window.URL.revokeObjectURL(href);  //释放blob对象
+      downloads(data).then(( async res=>{
+        if (res.status==200) {
+          console.log(res)
+            const link = document.createElement('a')
+            link.href = res.data.data
+            link.target = '_blank'
+            link.setAttribute('download', '11.mp4') 
+            document.body.appendChild(link)
+            link.click()
+            // url 文件地址
+            // fetch(res.data.data).then(res => res.blob()).then(blob => { // 将链接地址字符内容转变成blob地址
+            //         const link = document.createElement('a');
+            //         link.href = URL.createObjectURL(blob);
+            //         link.download = data.fileName;
+            //         // link.target = '_blank';
+            //         document.body.appendChild(link);
+            //         link.click();
+            //         link.remove();
+            //     }).catch(() => {
+            //         alert('下载文件失败');
+            //     });
+          }
       }))
-    }
+    },
+
+    
    }
    }
 </script>

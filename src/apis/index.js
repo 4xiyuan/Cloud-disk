@@ -23,11 +23,27 @@ export function upload(param) {
 		data:param,
 	})
 }
-//下载
+//下载(文件流)
 export function download(param) {
     return httpRequest({
 		url: '/api/download/'+param.id+'/'+param.filePath,
 		method: 'get',
 		responseType:'blob'
+	})
+}
+//下载(url地址)
+export function downloads(param) {
+    return httpRequest({
+		url: '/api/downloads/'+param.id+'/'+param.fileName,
+		method: 'get',
+	})
+}
+//取消上传
+export function endUpload(param) {
+    return httpRequest({
+		url: '/api/endUpload/'+param.id,
+		method: 'post',
+		data:param,
+		responseType:'application/octet-stream'
 	})
 }

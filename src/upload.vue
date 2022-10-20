@@ -25,7 +25,7 @@ import axios from "axios";
 import SparkMD5 from "spark-md5";
 
 export default {
-  name: "App",
+  name: "upload",
   data() {
     return {
       total: 0,
@@ -65,6 +65,7 @@ export default {
       let partList = [],
         partsize = file.size / 100,
         cur = 0;
+        
       let datas = {
           data:[],
           "type":1
@@ -73,6 +74,7 @@ export default {
         let item = {
           chunk: file.slice(cur, cur + partsize),
           filename: file.name,
+          way:0,
         };
         cur += partsize;
         datas.data.push(item)
@@ -93,6 +95,8 @@ export default {
           formData.append("MFile", item.chunk);
           formData.append("shunk", index);
           formData.append("shunks", 100);
+          formData.append("belong", '1\\'+item.filename);
+          formData.append("way", item.way);
           formData.append("fileName", item.filename);
           return axios
             .post("http://localhost:8089/api/upload/1", formData, {
@@ -170,7 +174,12 @@ export default {
         }
       }
       sends(index)
-    }
+    },
+    async deletes(index){
+      this.requestList[index].type=0
+      this.filelist.splice(index,1)
+      this.requestList.splice(index,1)
+    },
   },
 };
 </script>

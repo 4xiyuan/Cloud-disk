@@ -136,6 +136,7 @@ body {
   width: 270px;
   position: fixed;
   left: 40%;
+
   bottom: 100px;
   height: 50px;
   border-radius: 20px;

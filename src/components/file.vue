@@ -1,13 +1,29 @@
 <template>
-  <div >
-    <div class="big-box">
-      
+  <div class="big-box">
+    
+    <div :class="sidebartypes? 'activation2':'activation3'">
+      <div style="height: 300px;"></div>
+      <el-result icon="info" title="激活密码箱" subTitle="点击按钮激活激活密码箱">
+          <template slot="extra">
+            <el-button @click="dialogVisible=true" type="primary" size="medium">激活</el-button>
+          </template>
+        </el-result>
     </div>
-    <div v-show="!stu"  :class="sidebartypes ? 'passwords':'passwords2'">
-      <el-input class="passwordtext" v-model="input" placeholder="请输入密码"></el-input>
-      <span class="text">请输入密码</span>
-    </div>
-    <span style="position: absolute;top:50%;left:50%" v-show="stu">加载中！！！</span>
+
+    <el-dialog
+      title="请输入密码"
+      :visible.sync="dialogVisible"
+      :close-on-press-escape="false"
+      :close-on-click-modal="false"
+      :show-close="false"
+      width="30%"
+      class="Safebox">
+      <el-input v-model="userSafebBoxpassword" placeholder="请输入密码"></el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
   
 </template>
@@ -16,10 +32,13 @@
    export default {
    data() {
        return {
+        //密码箱状态
+        dialogVisible:false,
         input:null,
         //侧边栏状态
         sidebartypes:sessionStorage.getItem('sidebartype')=='true',
-        stu:true,
+        stu:false,
+        userSafebBoxpassword:null,
        }
    },
    
@@ -31,74 +50,40 @@
         this.sidebartypes = false
       }
     });
-    this.shows()
    },
    methods:{
-     shows(){
-      let timer = setTimeout(() => {
-      //需要定时执行的代码
-      this.stu = false
-      }, 1000)
-     }
+    
    }
    }
 </script>
 
 <style scoped>
 .big-box{
+  width: 100%;
   position: absolute;
   margin-top: 90px;
   
 }
-.passwords{
-  position: absolute;
-  left: 240px;
-  right: 0; 
-  top:0;
-  bottom:0;
-  margin: auto;
-  width: 500px;
-  height: 200px;
-  border-radius: 25px;
-  box-shadow: 0 8px 32px 0 rgba(46, 46, 46, 0.37);
-  transition: all .4s;
-  
+.Safebox>>>.el-dialog__body{
+  height: 50px;
 }
-.passwords2{
-  position: absolute;
+.activation{
+  top: 300px;
   left: 0;
-  right: 0; 
-  top:0;
-  bottom:0;
-  margin: auto;
-  width: 500px;
-  height: 200px;
-  border-radius: 25px;
-  box-shadow: 0 8px 32px 0 rgba(46, 46, 46, 0.37);
+  right: 0;
+  margin:  auto;
+  width: 300px;
+  position: absolute;
+  transform: all .4s;
+}
+.activation2{
+  top: 0;
+  left: -240px;
+  right: 0;
+  margin:  auto;
+  width: 300px;
+  position: absolute;
   transition: all .4s;
- 
 }
-.passwordtext{
-  position: absolute;
-  width: 400px;
-  margin-left: 50px;
-  margin-top: 50px;
- 
-}
-.passwords >>> .el-input__inner{
-   height: 50px;
-   font-size: 22px;
 
-}
-.passwords2 >>> .el-input__inner{
-   height: 50px;
-   font-size: 22px;
-
-}
-.text{
-  position: absolute;
-  font-size: 22px;
-  bottom: 40px;
-  margin-left: 190px;
-}
 </style>
