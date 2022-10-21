@@ -67,7 +67,7 @@ const router = new Router({
   });
   router.beforeEach((to, from, next) => {
     console.log(sessionStorage.getItem('users'))
-    if (sessionStorage.getItem('users')=='false') {
+    if (sessionStorage.getItem('users')=='false'||!sessionStorage.getItem('users')) {
         console.log("未登录")
         if (to.name == "login") {
           console.log("未登录但要去登录页面")
