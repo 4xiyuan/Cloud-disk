@@ -16,7 +16,6 @@
                     <el-dropdown-item @click.native="Rename(item.fileName,item.belong,item.fileType)">重命名</el-dropdown-item>
                     <el-dropdown-item >移动</el-dropdown-item>
                     <el-dropdown-item >分享</el-dropdown-item>
-                    <el-dropdown-item >同步本地文件</el-dropdown-item>
                     <el-dropdown-item >移动至我的隐私</el-dropdown-item>
                     <el-dropdown-item ><span style="color: rgb(255, 0, 0);">移至回收站</span></el-dropdown-item>
                   </el-dropdown-menu>

@@ -66,23 +66,16 @@ const router = new Router({
     routes,
   });
   router.beforeEach((to, from, next) => {
-    console.log(sessionStorage.getItem('users'))
     if (sessionStorage.getItem('users')=='false'||!sessionStorage.getItem('users')) {
-        console.log("未登录")
         if (to.name == "login") {
-          console.log("未登录但要去登录页面")
           next();
       } else {
-        console.log("未登录强制去登录页面")
         router.push('/login')
       }
     } else{
-      console.log("已登录")
       if(to.name == "login"){
-        console.log("已登录但要去登录页强制跳转回主页")
         router.push('/home')
       }else{
-        console.log("已登录随便去")
         next();
       }
       
