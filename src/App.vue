@@ -97,9 +97,10 @@
         <div class="NewFolder"><img  src="../public/photo/folder.png" width="100px" height="80px"></div>
         <div style="margin-top: 30px;"><el-input v-model="NewFolderName" placeholder="文件夹名称"></el-input></div>
         <span slot="footer" class="dialog-footer">
-          <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+          <el-button type="primary" @click="addFolder()">确 定</el-button>
         </span>
       </el-dialog>
+
       
       <!-- 上传列表 -->
       <div v-show="uploadlist" class="uploadbox">
@@ -137,9 +138,10 @@
 </template>
 
 <script type="text/javascript">
+import home from '../src/components/home.vue'
 import SparkMD5 from 'spark-md5'
 import upload from '../src/upload.vue'
-import {endUpload} from '../src/apis/index'
+import {endUpload,addfolder} from '../src/apis/index'
    export default {
     components: {
     'uploads': upload,
@@ -190,9 +192,33 @@ import {endUpload} from '../src/apis/index'
     this.initData();
   },
    methods:{
+    //新建文件夹
+    addFolder(){
+      if(!this.NewFolderName){
+        this.$message.error('文件名不能为空！');
+        return
+      }
+      let data = {
+        id:'1',
+        filePath:'1/'+this.NewFolderName,
+      }
+      console.log(data)
+      addfolder(data).then(res=>{
+        if(res.data.code==200){
+          this.dialogVisible = false
+          window.location.reload();
+          this.$message.success('新建文件夹成功！');
+
+        }else{
+           this.$message.error(res.data.msg);
+        }
+        
+      })
+    },
     //根据下标关闭文件下上传
     async guanbi(index){
       await endUpload()
+      
       this.$refs.uploads.deletes(index)
     },
     //更新文件的上传进度

@@ -47,3 +47,26 @@ export function endUpload(param) {
 		responseType:'application/octet-stream'
 	})
 }
+//查询用户
+export function file(param) {
+    return httpRequest({
+		url: '/api/file/'+param.id,
+		method: 'get',
+	})
+}
+//新建文件夹
+export function addfolder(param) {
+    return httpRequest({
+		url: '/api/folder/'+param.id,
+		method: 'post',
+		data:param,
+	})
+}
+//修改文件名
+export function rename(param) {
+    return httpRequest({
+		url: '/api/rename/'+param.id,
+		method: 'put',
+		data:param,
+	})
+}

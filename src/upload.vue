@@ -95,7 +95,7 @@ export default {
           formData.append("MFile", item.chunk);
           formData.append("shunk", index);
           formData.append("shunks", 100);
-          formData.append("belong", '1\\'+item.filename);
+          formData.append("belong", '1\\');
           formData.append("way", item.way);
           formData.append("fileName", item.filename);
           return axios

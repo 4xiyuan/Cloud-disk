@@ -1,18 +1,19 @@
 <template>
   <div  :class="sidebartypes ? 'xlayer' :'xlayer2'">
-    <div @change="StateChange()" class="allbox"><el-checkbox  v-model="checkeds">全选</el-checkbox></div>
-    <li style="float: left;list-style-type: none;" v-for="index in list" :key="index">
-        <div class="Alayer " >
-          <div @mouseover="boxindex=index" @mouseleave="boxindex=null"  :class="['Alayer-x',{'is-choice':checked[index-1]} ]">
-            <div  v-show="boxindex==index||checked[index-1]"><el-checkbox  v-model="checked[index-1]"></el-checkbox></div>
-            <div v-show="boxindex==index&&!checked[index-1]" class="choicebox">
+    <div  class="allbox"><el-checkbox @change="StateChange()" v-model="checkeds">全选</el-checkbox></div>
+    <li style="float: left;list-style-type: none;" v-for="item,index in list" :key="index">
+        <div v-if="item.belong==item.userId+'/'||item.belong==item.userId+'\\'" class="Alayer " >
+          <div @mouseover="boxindex=index" @mouseleave="boxindex=null"  :class="['Alayer-x',{'is-choice':checked[index]} ]">
+            <div  v-show="boxindex==index||checked[index]"><el-checkbox  v-model="checked[index]"></el-checkbox></div>
+            <div v-show="boxindex==index&&!checked[index]" class="choicebox">
               <el-dropdown trigger="click" placement="bottom-start">
                   <span class="el-dropdown-link">
                     <i class="el-icon-more"></i>
                   </span>
                   <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item @click.native="down()" >下载</el-dropdown-item>
-                    <el-dropdown-item >重命名</el-dropdown-item>
+                    <el-dropdown-item v-if="item.fileType=='folder'" @click.native="open()" >打开</el-dropdown-item>
+                    <el-dropdown-item v-else @click.native="down(item.fileName,item.belong)" >下载</el-dropdown-item>
+                    <el-dropdown-item @click.native="Rename(item.fileName,item.belong,item.fileType)">重命名</el-dropdown-item>
                     <el-dropdown-item >移动</el-dropdown-item>
                     <el-dropdown-item >分享</el-dropdown-item>
                     <el-dropdown-item >同步本地文件</el-dropdown-item>
@@ -21,10 +22,10 @@
                   </el-dropdown-menu>
                 </el-dropdown>
             </div>
-            <div  class="tubiao" ><img style="margin-top: 10px;" src="../../public/photo/folder.png" width="100px" height="80px"></div>
-            <div v-if="index%2==0" class="Alayer-text">未必哦擦</div>
-            <div v-else class="Alayer-text">年我无法就怕宋朝你们那么怕哇哦的骄傲没骄傲没骄傲没</div>
-            <div class="time">2022/08/09 16:40</div>
+            <div v-if="item.fileType=='folder'" class="tubiao" ><img style="margin-top: 10px;" :src="require('../../public/photo/'+item.fileType+'.png')" width="100px" height="80px"></div>
+            <div v-else class="tubiao" ><img style="margin-top: 10px;" :src="require('../../public/photo/'+item.fileType+'.png')" width="80px" height="80px"></div>
+            <div  class="Alayer-text">{{item.fileName}}</div>
+            <div class="time">{{item.uploadTime}}</div>
             <div style="height: 10px;"></div>
           </div>
         </div>
@@ -38,15 +39,32 @@
       <div class="selectbox" title="取消多选"><img style="margin-top: 5px;" src="../../public/photo/cancel.png" width="20px" height="20px"></div>
     </div>
     <!-- <a v-show="false" ref="downs" href="xxx.txt" download="xxx.txt"></a> -->
+
+    <el-dialog
+        v-if="filetype"
+        title="文件重命名"
+        :visible.sync="dialogVisibles"
+        width="400px">
+        <div class="NewFolder">
+          <img v-if="filetype=='folder'"  src="../../public/photo/folder.png" width="100px" height="80px">
+          <img v-else :src="require('../../public/photo/'+filetype+'.png')" width="80px" height="80px">
+        </div>
+        <div style="margin-top: 30px;"><el-input v-model="NewFolderNames" placeholder="文件夹名称"></el-input></div>
+        <span slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="enames()">确 定</el-button>
+        </span>
+      </el-dialog>
   </div> 
 </template>
 
 <script type="text/javascript">
 import download from "downloadjs";
-import {downloads} from "../apis/index"
+import {downloads,file,rename} from "../apis/index"
    export default {
    data() {
        return {
+        //修改文件名时文件的类型
+          filetype:null,
         //侧边栏状态
           sidebartypes:sessionStorage.getItem('sidebartype')=='true',
           //文件选择状态
@@ -55,14 +73,19 @@ import {downloads} from "../apis/index"
           SelectedFile:null,
           //悬浮于哪一个文件下标
           boxindex:null,
-          //文件列表长度
-          list:16,
+          //文件新名字
+          NewFolderNames:null,
+          //文件列表
+          list:[],
           //全选
           checkeds:false,
+          //文件重命名层
+          dialogVisibles:false,
        }
    },
    created(){
     this.listnum()
+    this.getuserfile()
    },
    mounted(){
     window.addEventListener("setItem", () => {
@@ -84,6 +107,17 @@ import {downloads} from "../apis/index"
     }
    },
    methods:{
+    //获取用户文件信息
+    getuserfile(){
+      let data = {
+        id:'1'
+      }
+      file(data).then((res=>{
+        if(res.status==200){
+          this.list = res.data.data  
+        }
+      }))
+    },
     gto(){
       this.$router.push('/folder')
     },
@@ -98,7 +132,7 @@ import {downloads} from "../apis/index"
     StateChange(){
       if(this.checkeds==true){
         this.checked=[]
-        for(var i=0;i<this.list;i++){
+        for(var i=0;i<this.list.length;i++){
         this.checked.push(true)
       }
       }else{
@@ -106,7 +140,7 @@ import {downloads} from "../apis/index"
       }
       
     },
-    async down(){
+    async down(name,belong){
       //文件流
       // let data = {
       //   fileNath:"D:@bishe@file@1@大视频.mp4",
@@ -127,34 +161,75 @@ import {downloads} from "../apis/index"
       // }))
 
       //url地址
+      let Name = belong+name+''
+      Name = Name.replace(/\\/g, '@-.@')
       let data = {
-        fileName:"大视频.mp4",
+        fileName:Name,
         id:"1"
       }
       downloads(data).then(( async res=>{
         if (res.status==200) {
-          console.log(res)
-            const link = document.createElement('a')
-            link.href = res.data.data
-            link.target = '_blank'
-            link.setAttribute('download', '11.mp4') 
-            document.body.appendChild(link)
-            link.click()
-            // url 文件地址
-            // fetch(res.data.data).then(res => res.blob()).then(blob => { // 将链接地址字符内容转变成blob地址
-            //         const link = document.createElement('a');
-            //         link.href = URL.createObjectURL(blob);
-            //         link.download = data.fileName;
-            //         // link.target = '_blank';
-            //         document.body.appendChild(link);
-            //         link.click();
-            //         link.remove();
-            //     }).catch(() => {
-            //         alert('下载文件失败');
-            //     });
+            // const link = document.createElement('a')
+            // link.href = res.data.data
+            // link.target = '_blank'
+            // link.setAttribute('download', '11.mp4') 
+            // document.body.appendChild(link)
+            // link.click()
+            const h = this.$createElement;
+            let notify= this.$notify({
+              title:'文件解析中',
+              dangerouslyUseHTMLString: true,
+              message:h('div',[h('i',{class:"el-icon-loading"},),h( 'div','文件越大,解析越耗时,请耐心等待！'),]),
+              showClose: false,
+              duration:0,
+            });
+            fetch(res.data.data).then(res => res.blob()).then(blob => { // 将链接地址字符内容转变成blob地址
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = name;
+                    // link.target = '_blank';
+                    document.body.appendChild(link);
+                    link.click();
+                    notify.close()
+                    link.remove();
+                }).catch(() => {
+                    notify.close()
+                    this.$message.error('服务器出错,请稍后重试！');
+                    
+                });
           }
       }))
     },
+    //修改文件名层弹出
+    Rename(name,belong,type){
+      this.NewFolderNames = name
+      this.filetype = type
+      this.dialogVisibles = true
+      let data = {
+        id:'1',
+        oldFilePath:belong+name,
+        newFilePath:belong
+      }
+      this.dat = data
+    },
+    enames(){
+      if(!this.NewFolderNames) {
+        this.$message.error('文件名不能为空！');
+        return
+        }
+      let data = this.dat
+      data.newFilePath = data.newFilePath+this.NewFolderNames
+      rename(data).then((res=>{
+        if(res.data.code==200){
+          this.dialogVisible = false
+          window.location.reload();
+          this.$message.success('文件重命名成功！');
+
+        }else{
+           this.$message.error(res.data.msg);
+        }
+      }))
+    }
 
     
    }
@@ -166,7 +241,17 @@ import {downloads} from "../apis/index"
     margin:0;
     padding:0;
   }
-
+.el-icon-loading{
+  position: absolute;
+  font-size: 18px;
+  font-weight: 1000;
+  margin-top: -25px;
+  margin-left: 85px;
+  }
+.NewFolder{
+  margin-top: 20px;
+  margin-left: 140px;
+}
 body {
   margin:0;
   padding:0;
