@@ -7,6 +7,7 @@ import video from '../components/video.vue'
 import file from '../components/file.vue'
 import folder from '../components/folder.vue'
 import recycle from '../components/recycle.vue'
+import SaveMove from '../components/SaveMove.vue'
 Vue.use(Router);
 
  
@@ -25,37 +26,55 @@ const routes = [
         path: '/home',
         name: 'home',
         component: home,
+        meta:{
+          title:'全部文件'
+        }
       },
       {
         path: '/photo',
         name: 'photo',
         component: photo,
+        meta:{
+          title:'照片'
+        }
       },
       {
         path: '/video',
         name: 'video',
         component: video,
+        meta:{
+          title:'音视频'
+        }
       },
       {
         path: '/file',
         name: 'file',
         component: file,
+        meta:{
+          title:'我的隐私'
+        }
         
       },
       {
         path: '/folder',
         name: 'folder',
         component: folder,
-        
       },
       {
         path: '/recycle',
         name: 'recycle',
         component: recycle,
+        meta:{
+          title:'回收站'
+        }
         
       },
-      
-      
+      {
+        path: '/SaveMove',
+        name: 'SaveMove',
+        component: SaveMove,
+        
+      },
       
   ];
   
@@ -81,5 +100,6 @@ const router = new Router({
       
     }
     })
+
 
 export default router;

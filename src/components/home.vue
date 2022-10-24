@@ -3,20 +3,20 @@
     <div  class="allbox"><el-checkbox @change="StateChange()" v-model="checkeds">全选</el-checkbox></div>
     <li style="float: left;list-style-type: none;" v-for="item,index in list" :key="index">
         <div v-if="item.belong==item.userId+'/'||item.belong==item.userId+'\\'" class="Alayer " >
-          <div @mouseover="boxindex=index" @mouseleave="boxindex=null"  :class="['Alayer-x',{'is-choice':checked[index]} ]">
-            <div  v-show="boxindex==index||checked[index]"><el-checkbox  v-model="checked[index]"></el-checkbox></div>
-            <div v-show="boxindex==index&&!checked[index]" class="choicebox">
+          <div @mouseover="boxindex=index" @mouseleave="boxindex=null" @click="opens(item.fileType,item.fileName,item.belong)" :class="['Alayer-x',{'is-choice':checked[index]} ]">
+            <div @click.stop v-show="boxindex==index||checked[index]"><el-checkbox   v-model="checked[index]"></el-checkbox></div>
+            <div v-show="boxindex==index&&!checked[index]" @click.stop class="choicebox">
               <el-dropdown trigger="click" placement="bottom-start">
                   <span class="el-dropdown-link">
                     <i class="el-icon-more"></i>
                   </span>
                   <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item v-if="item.fileType=='folder'" @click.native="open()" >打开</el-dropdown-item>
+                    <el-dropdown-item v-if="item.fileType=='folder'"  @click.native="open(item.fileName,item.belong)" >打开</el-dropdown-item>
                     <el-dropdown-item v-else @click.native="down(item.fileName,item.belong)" >下载</el-dropdown-item>
                     <el-dropdown-item @click.native="Rename(item.fileName,item.belong,item.fileType)">重命名</el-dropdown-item>
-                    <el-dropdown-item >移动</el-dropdown-item>
+                    <el-dropdown-item @click.native="Move()">移动</el-dropdown-item>
                     <el-dropdown-item >分享</el-dropdown-item>
-                    <el-dropdown-item >移动至我的隐私</el-dropdown-item>
+                    <el-dropdown-item v-if="item.fileType!='folder'" >移动至我的隐私</el-dropdown-item>
                     <el-dropdown-item ><span style="color: rgb(255, 0, 0);">移至回收站</span></el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
@@ -39,6 +39,7 @@
     </div>
     <!-- <a v-show="false" ref="downs" href="xxx.txt" download="xxx.txt"></a> -->
 
+    <!-- 文件重命名 -->
     <el-dialog
         v-if="filetype"
         title="文件重命名"
@@ -53,6 +54,21 @@
           <el-button type="primary" @click="enames()">确 定</el-button>
         </span>
       </el-dialog>
+
+      <!-- 移动文件 -->
+      <el-dialog
+        title="移动至"
+        :visible.sync="movetype"
+        width="400px">
+        <div>
+          
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="enames()">确 定</el-button>
+        </span>
+      </el-dialog>
+
+
   </div> 
 </template>
 
@@ -62,6 +78,12 @@ import {downloads,file,rename} from "../apis/index"
    export default {
    data() {
        return {
+        //移动位置信息
+        moveValue:null,
+        //移动文件选择框是否显示
+        movetype:false,
+        //搜索框内容
+        Searchbox:null,
         //修改文件名时文件的类型
           filetype:null,
         //侧边栏状态
@@ -83,8 +105,8 @@ import {downloads,file,rename} from "../apis/index"
        }
    },
    created(){
-    this.listnum()
     this.getuserfile()
+    this.listnum()
    },
    mounted(){
     window.addEventListener("setItem", () => {
@@ -93,6 +115,7 @@ import {downloads,file,rename} from "../apis/index"
       }else{
         this.sidebartypes = false
       }
+      this.Searchbox = sessionStorage.getItem('searchtext')
     });
    },
    watch:{
@@ -102,6 +125,13 @@ import {downloads,file,rename} from "../apis/index"
         if(this.checked[i]==true){
           this.SelectedFile=1
         }
+      }
+    },
+    'Searchbox'(){
+      if(this.Searchbox!=null&&this.Searchbox!=""){
+        
+      }else{
+        
       }
     }
    },
@@ -228,7 +258,29 @@ import {downloads,file,rename} from "../apis/index"
            this.$message.error(res.data.msg);
         }
       }))
-    }
+    },
+    //打开文件夹
+    open(name,belong){
+      this.$router.push({
+        path: '/folder',
+        query: {
+          name: name,
+          belong:belong,
+        }
+      })
+    },
+    //点击文件
+    opens(type,name,belong){
+      if(type=="folder"){
+        this.open(name,belong)
+      }else{
+
+      }
+    },
+    beforeDestroy() {
+    // 移除对 sessionStorage 的监听
+    window.removeEventListener("setItem", () => {});
+  },
 
     
    }

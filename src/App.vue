@@ -1,11 +1,9 @@
 <template>
   <div id="app">
       <div v-if="usert=='true'" :class="index&&usert=='true' ?'Toptaskbar':'Toptaskbar2'">
-          <el-breadcrumb separator-class="el-icon-arrow-right">
-              <el-breadcrumb-item :to="{ path: '/' }">全部文件</el-breadcrumb-item>
-              <el-breadcrumb-item :to="{ path: '/' }">全部文件</el-breadcrumb-item>
-              <el-breadcrumb-item :to="{ path: '/' }">全部文件</el-breadcrumb-item>
-
+          <el-breadcrumb  separator=">">
+              <el-breadcrumb-item v-for="(item,index) in 1" :to="{ path: '/' }" :replace ="true">{{routeTitle}}</el-breadcrumb-item>
+              <el-breadcrumb-item v-for="(item,index) in 1" :to="{ path: '/' }" :replace ="true">{{routeTitle}}</el-breadcrumb-item>
           </el-breadcrumb>
 
           <div class="searchbox">
@@ -84,7 +82,7 @@
       </div>
       <div :class="index&&usert=='true' ? 'bodu':'bodu2'">
         <transition name="fade">
-            <router-view/>
+            <router-view v-if="isRouterAlive" />
         </transition>
       </div>
 
@@ -146,8 +144,16 @@ import {endUpload,addfolder} from '../src/apis/index'
     components: {
     'uploads': upload,
   },
+  provide(){
+    return {
+      reload:this.reload
+    }
+  },
    data() {
        return {
+          //当前路由标签
+          routeTitle:sessionStorage.getItem('zhutitle'),
+          isRouterAlive:true,
           uploadlist:false,
           index:sessionStorage.getItem('sidebartype')=='true',
           usert:sessionStorage.getItem('users'),
@@ -155,6 +161,7 @@ import {endUpload,addfolder} from '../src/apis/index'
           sidebarnum:1,
           routers:['/home','/photo','/video','/file','/recycle'],
           title:['全部文件','照片','音视频','我的隐私','回收站','待定2'],
+          //搜索框内容
           searchText:null,
           //新建文件夹层是否渲染变量
           dialogVisible:false,
@@ -182,16 +189,44 @@ import {endUpload,addfolder} from '../src/apis/index'
     '$route' () {
       //判断是否登录
       this.initData();
+      if(this.$route.meta.title){
+        sessionStorage.setItem('zhutitle',this.$route.meta.title)
+        this.routeTitle = sessionStorage.getItem('zhutitle')
+      }
       //路由跳转时重置滚动条顶部
       document.body.scrollTop = 0
       document.documentElement.scrollTop = 0
+
       
+    },
+    'searchText'(){
+        this.setSessionItem('searchtext',this.searchText)
     },
   },
   created(){
     this.initData();
   },
+  computed: {
+    key() {
+      // 只要保证 key 唯一性就可以了，保证不同页面的 key 不相同
+      // console.log(this.$route.fullPath);
+      return this.$route.fullPath
+    }
+  },
+  mounted(){
+     // 监听返回事件,点击系统返回时
+    if(window.history && window.history.pushState){
+      window.addEventListener('popstate',this.reload,false)
+    }
+  },
    methods:{
+    //刷新数据
+    reload(){
+      this.isRouterAlive = false
+      this.$nextTick(function(){
+        this.isRouterAlive=true
+      })
+    },
     //新建文件夹
     addFolder(){
       if(!this.NewFolderName){
@@ -200,9 +235,9 @@ import {endUpload,addfolder} from '../src/apis/index'
       }
       let data = {
         id:'1',
-        filePath:'1/'+this.NewFolderName,
+        filePath:'1\\'+this.NewFolderName,
+        fileName:this.NewFolderName
       }
-      console.log(data)
       addfolder(data).then(res=>{
         if(res.data.code==200){
           this.dialogVisible = false

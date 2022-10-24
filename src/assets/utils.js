@@ -1,3 +1,4 @@
+
 export function fileParse(file, type = "base64") {
     return new Promise(resolve => {
         let fileRead = new FileReader();
@@ -11,3 +12,5 @@ export function fileParse(file, type = "base64") {
         };
     });
 };
+
+
