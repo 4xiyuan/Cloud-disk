@@ -3,7 +3,6 @@
       <div v-if="usert=='true'" :class="index&&usert=='true' ?'Toptaskbar':'Toptaskbar2'">
           <el-breadcrumb  separator=">">
               <el-breadcrumb-item v-for="(item,index) in 1" :to="{ path: '/' }" :replace ="true">{{routeTitle}}</el-breadcrumb-item>
-              <el-breadcrumb-item v-for="(item,index) in 1" :to="{ path: '/' }" :replace ="true">{{routeTitle}}</el-breadcrumb-item>
           </el-breadcrumb>
 
           <div class="searchbox">
@@ -188,11 +187,20 @@ import {endUpload,addfolder} from '../src/apis/index'
    watch: {
     '$route' () {
       //判断是否登录
+      if(this.getQueryString('belong')+this.getQueryString('name')){
+        sessionStorage.setItem('paths',this.getQueryString('belong')+this.getQueryString('name')+'\\')
+      }else{
+        sessionStorage.removeItem('paths')
+      }
       this.initData();
+      //路由跳转时清空搜索框内容
+      this.searchText = null
+      //路由跳转时获得当前路由的标签
       if(this.$route.meta.title){
         sessionStorage.setItem('zhutitle',this.$route.meta.title)
         this.routeTitle = sessionStorage.getItem('zhutitle')
       }
+      
       //路由跳转时重置滚动条顶部
       document.body.scrollTop = 0
       document.documentElement.scrollTop = 0
@@ -214,14 +222,23 @@ import {endUpload,addfolder} from '../src/apis/index'
     }
   },
   mounted(){
+    
+    
      // 监听返回事件,点击系统返回时
     if(window.history && window.history.pushState){
       window.addEventListener('popstate',this.reload,false)
     }
   },
    methods:{
+    //获取当前url地址参数
+    getQueryString(name) {
+          var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+          var r = window.location.search.substr(1).match(reg);
+          if (r != null) return decodeURIComponent(r[2]); return null;
+            },
     //刷新数据
     reload(){
+      console.log('调用刷新方法')
       this.isRouterAlive = false
       this.$nextTick(function(){
         this.isRouterAlive=true

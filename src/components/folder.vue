@@ -11,6 +11,7 @@
                     <i class="el-icon-more"></i>
                   </span>
                   <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item v-if="item.fileType!='folder'"  @click.native="prev()" >预览</el-dropdown-item>
                     <el-dropdown-item v-if="item.fileType=='folder'" @click.native="open(item.fileName,item.belong)" >打开</el-dropdown-item>
                     <el-dropdown-item v-else @click.native="down(item.fileName,item.belong)" >下载</el-dropdown-item>
                     <el-dropdown-item @click.native="Rename(item.fileName,item.belong,item.fileType)">重命名</el-dropdown-item>
@@ -187,6 +188,7 @@ import {downloads,file,rename} from "../apis/index"
         fileName:Name,
         id:"1"
       }
+      console.log(data)
       downloads(data).then(( async res=>{
         if (res.status==200) {
             // const link = document.createElement('a')

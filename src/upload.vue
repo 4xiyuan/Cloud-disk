@@ -48,6 +48,8 @@ export default {
     //触发上传按钮事件
     shang(){
       this.$refs.me.click()
+      
+
     },
     async changeFile(file) {
       if (!file) return;
@@ -95,7 +97,11 @@ export default {
           formData.append("MFile", item.chunk);
           formData.append("shunk", index);
           formData.append("shunks", 100);
-          formData.append("belong", '1\\');
+          if(sessionStorage.getItem('paths')&&sessionStorage.getItem('paths')!=''){
+            formData.append("belong", sessionStorage.getItem('paths'));
+          }else{
+            formData.append("belong", '1\\');
+          }
           formData.append("way", item.way);
           formData.append("fileName", item.filename);
           return axios

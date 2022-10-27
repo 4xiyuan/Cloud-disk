@@ -2,7 +2,7 @@
   <div  :class="sidebartypes ? 'xlayer' :'xlayer2'">
     <div  class="allbox"><el-checkbox @change="StateChange()" v-model="checkeds">全选</el-checkbox></div>
     <li style="float: left;list-style-type: none;" v-for="item,index in list" :key="index">
-        <div v-if="item.belong==item.userId+'/'||item.belong==item.userId+'\\'" class="Alayer " >
+        <div v-if="isshow||(item.belong==item.userId+'/'||item.belong==item.userId+'\\')" class="Alayer " >
           <div @mouseover="boxindex=index" @mouseleave="boxindex=null" @click="opens(item.fileType,item.fileName,item.belong)" :class="['Alayer-x',{'is-choice':checked[index]} ]">
             <div @click.stop v-show="boxindex==index||checked[index]"><el-checkbox   v-model="checked[index]"></el-checkbox></div>
             <div v-show="boxindex==index&&!checked[index]" @click.stop class="choicebox">
@@ -11,6 +11,7 @@
                     <i class="el-icon-more"></i>
                   </span>
                   <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item v-if="item.fileType!='folder'"  @click.native="prev(item.fileName,item.belong)" >预览</el-dropdown-item>
                     <el-dropdown-item v-if="item.fileType=='folder'"  @click.native="open(item.fileName,item.belong)" >打开</el-dropdown-item>
                     <el-dropdown-item v-else @click.native="down(item.fileName,item.belong)" >下载</el-dropdown-item>
                     <el-dropdown-item @click.native="Rename(item.fileName,item.belong,item.fileType)">重命名</el-dropdown-item>
@@ -68,6 +69,31 @@
         </span>
       </el-dialog>
 
+      <!-- 预览文件 -->
+      <el-drawer
+        size="100%"
+        :visible.sync="drawer"
+        direction="btt">
+        <div class="big-box">
+          <div v-if="filestatus=='mp4'" class="video-box">
+            <video
+              ref="myVideo"
+              :src="src"
+              :controls="controls"
+              oncontextmenu="return false"
+              controlslist="nodownload"
+              class="video-boxs"
+            ></video>
+          </div>
+
+          <div v-if="filestatus=='jpg'||filestatus=='png'" class="img-box">
+              <el-image :src="src"></el-image>
+          </div>
+        </div>
+      </el-drawer>
+    
+      
+      
 
   </div> 
 </template>
@@ -76,8 +102,22 @@
 import download from "downloadjs";
 import {downloads,file,rename} from "../apis/index"
    export default {
+    inject:['reload'],
    data() {
        return {
+        //文件预览的类型
+        filestatus:'mp4',
+        //文件预览的地址
+        src:null,
+        controls: {
+          type: Boolean,
+          required: false,
+          default: true
+        },
+        //文件预览层是否渲染
+        drawer:false,
+        //搜索框是否有内容
+        isshow:false,
         //移动位置信息
         moveValue:null,
         //移动文件选择框是否显示
@@ -128,14 +168,50 @@ import {downloads,file,rename} from "../apis/index"
       }
     },
     'Searchbox'(){
-      if(this.Searchbox!=null&&this.Searchbox!=""){
+      console.log()
+      if(this.Searchbox!=null&&this.Searchbox!=""&&this.Searchbox!=" "){
+        this.isshow = true
+        this.list = []
+        let data = {
+            id:'1'
+          }
+          file(data).then((res=>{
+            if(res.status==200){
+              for(let i =0;i<res.data.data.length;i++){
+                if(res.data.data[i].fileName.indexOf(this.Searchbox)!=-1){
+                  this.list.push(res.data.data[i])
+                }else{
+                }
+              }
+            }
+          }))
         
       }else{
-        
+        console.log(111)
+        this.getuserfile()
+        this.isshow = false
       }
     }
    },
    methods:{
+    //文件预览
+    prev(name,belong){
+      let Name = belong+name+''
+      Name = Name.replace(/\\/g, '@-.@')
+      let data = {
+        fileName:Name,
+        id:"1"
+      }
+      downloads(data).then((res=>{
+        if(res.data.code==200){
+          this.src = res.data.data
+          this.drawer = true
+        }
+        
+      }))
+      
+    },
+
     //获取用户文件信息
     getuserfile(){
       let data = {
@@ -241,6 +317,7 @@ import {downloads,file,rename} from "../apis/index"
       }
       this.dat = data
     },
+    //文件重命名
     enames(){
       if(!this.NewFolderNames) {
         this.$message.error('文件名不能为空！');
@@ -274,7 +351,7 @@ import {downloads,file,rename} from "../apis/index"
       if(type=="folder"){
         this.open(name,belong)
       }else{
-
+        this.prev(name,belong)
       }
     },
     beforeDestroy() {
@@ -292,6 +369,37 @@ import {downloads,file,rename} from "../apis/index"
     margin:0;
     padding:0;
   }
+.big-box{
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  width: 80%;
+  height: 80%;
+  }
+.img-box{
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: auto;
+  }
+.video-box{
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: auto;
+}
+.video-boxs{
+  width: 100%;
+  height: 100%;
+}
 .el-icon-loading{
   position: absolute;
   font-size: 18px;

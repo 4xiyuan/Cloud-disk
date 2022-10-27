@@ -7,7 +7,7 @@
         v-for="(item,index) in breadList"
         :key="index"
         :to="{ path: item.path }"
-      >{{item.name}}</el-breadcrumb-item>
+      >{{item.meta.title}}</el-breadcrumb-item>
     </el-breadcrumb>
  
  
