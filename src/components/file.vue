@@ -1,7 +1,7 @@
 <template>
   <div class="big-box">
     
-    <div :class="sidebartypes? 'activation2':'activation3'">
+    <div :class="sidebartypes? 'activation2':'activation'">
       <div style="height: 300px;"></div>
       <el-result icon="info" title="激活密码箱" subTitle="点击按钮激活激活密码箱">
           <template slot="extra">
@@ -68,7 +68,7 @@
   height: 50px;
 }
 .activation{
-  top: 300px;
+  top: 0;
   left: 0;
   right: 0;
   margin:  auto;

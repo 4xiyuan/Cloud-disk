@@ -116,6 +116,15 @@ export default {
                           this.filelist[x].status=1
                         }
                       }
+                //上传完成后刷新数据
+                if(this.getQueryString('belong')+this.getQueryString('name')){
+                  let name =this.getQueryString('name')
+                  let belong = this.getQueryString('belong')
+                  this.$bus.$emit('RefreshDatas',name,belong)
+                }else{
+                  this.$bus.$emit('RefreshData')
+                }
+                
               }
               if (result.code == 200) {
                 // console.log("已经传送完第"+index+"片")
@@ -185,6 +194,12 @@ export default {
       this.requestList[index].type=0
       this.filelist.splice(index,1)
       this.requestList.splice(index,1)
+    },
+    //获取当前url地址参数
+    getQueryString(name) {
+          var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+          var r = window.location.search.substr(1).match(reg);
+          if (r != null) return decodeURIComponent(r[2]); return null;
     },
   },
 };

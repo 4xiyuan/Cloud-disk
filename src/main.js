@@ -27,7 +27,7 @@ Vue.config.productionTip = false
 		
 // 	}
 // });
-
+Vue.prototype.$bus = new Vue();
 
 Vue.prototype.setSessionItem = function (key, newVal) {
   // 创建 StorageEvent 事件

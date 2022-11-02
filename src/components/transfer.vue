@@ -11,15 +11,21 @@
        }
    },
    created(){
+    let paths = this.$route.query.paths
     let name =this.$route.query.name
     let belong = this.$route.query.belong
-    this.$router.push({
-        path: '/folder',
+    if(name+belong){
+      this.$router.push({
+        path: paths,
         query: {
           name: name,
           belong:belong,
         }
       })
+    }else{
+      this.$router.push(paths)
+    }
+    
    },
    methods:{
    }

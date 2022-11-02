@@ -56,7 +56,7 @@
        </div>
 
        <div class="card" >
-        <li style="list-style-type: none;float: left;" v-for="index in 6" :key="index">
+        <li style="list-style-type: none;float: left;" v-for="index in 5" :key="index">
           <div v-if="index!=sidebarnum" @mouseover="ind=index" @mouseleave="ind=null" @click="Sidebars(index)" :class="ind==index ? 'cards2':'cards'">
             <img class="che"  :src="require('../public/photo/che'+(index-1)+'.png')" >
             <span class="textr">{{title[index-1]}}</span>
@@ -100,7 +100,7 @@
 
       
       <!-- 上传列表 -->
-      <div v-show="uploadlist" class="uploadbox">
+      <div  :class="uploadlist?'uploadbox2':'uploadbox'">
         <div class="uploadtext">上传列表</div>
         <div class="xuanfu"></div>
         <div class="upload-box">
@@ -159,7 +159,7 @@ import {endUpload,addfolder} from '../src/apis/index'
           ind:100,
           sidebarnum:1,
           routers:['/home','/photo','/video','/file','/recycle'],
-          title:['全部文件','照片','音视频','我的隐私','回收站','待定2'],
+          title:['全部文件','照片','音视频','我的隐私','回收站'],
           //搜索框内容
           searchText:null,
           //新建文件夹层是否渲染变量
@@ -213,6 +213,7 @@ import {endUpload,addfolder} from '../src/apis/index'
   },
   created(){
     this.initData();
+    
   },
   computed: {
     key() {
@@ -238,7 +239,7 @@ import {endUpload,addfolder} from '../src/apis/index'
             },
     //刷新数据
     reload(){
-      console.log('调用刷新方法')
+      // window.location.reload();
       this.isRouterAlive = false
       this.$nextTick(function(){
         this.isRouterAlive=true
@@ -252,15 +253,21 @@ import {endUpload,addfolder} from '../src/apis/index'
       }
       let data = {
         id:'1',
-        filePath:'1\\'+this.NewFolderName,
+        filePath:null,
         fileName:this.NewFolderName
       }
+      if(sessionStorage.getItem('paths')&&sessionStorage.getItem('paths')!=''){
+            data.filePath=sessionStorage.getItem('paths')+this.NewFolderName
+      }else{
+            data.filePath='1\\'+this.NewFolderName
+      }
+      console.log(data)
       addfolder(data).then(res=>{
         if(res.data.code==200){
           this.dialogVisible = false
           window.location.reload();
           this.$message.success('新建文件夹成功！');
-
+          this.NewFolderName = null
         }else{
            this.$message.error(res.data.msg);
         }
@@ -378,9 +385,9 @@ import {endUpload,addfolder} from '../src/apis/index'
   text-align: center;
   font-size: 18px;
 }
-
-.uploadbox{
-  
+.uploadbox2{
+  transition: all .3s;
+  right: 10px;
   box-shadow: 0 8px 32px 0 rgba(47, 47, 47, 0.37);
   overflow: auto;
   width: 400px;
@@ -390,7 +397,21 @@ import {endUpload,addfolder} from '../src/apis/index'
   z-index: 2000;
   border-radius: 20px;
   background: #ffffff;
-  right: 10px;
+  bottom: 10px;
+}
+
+.uploadbox{
+  transition: all .3s;
+  right: -450px;
+  box-shadow: 0 8px 32px 0 rgba(47, 47, 47, 0.37);
+  overflow: auto;
+  width: 400px;
+  height:500px ;
+  max-height:600px ;
+  position: fixed;
+  z-index: 2000;
+  border-radius: 20px;
+  background: #ffffff;
   bottom: 10px;
 }
 .uploadbox::-webkit-scrollbar {

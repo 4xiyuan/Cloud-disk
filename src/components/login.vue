@@ -62,9 +62,15 @@
         password:null,
         Stylevariable:0,
         Stylevariable1:2,
+        
        }
    },
    created(){
+    if(sessionStorage.getItem('ekey')){
+    }else{
+      sessionStorage.setItem('ekey','true')
+      this.$router.go(0)
+    }
       var users = 'false'
       //开发阶段用sessionStorage部署后端之后记得改为localStorage
       sessionStorage.setItem('users',users)
@@ -75,6 +81,7 @@
           var data = {
           username:this.username,
           password:this.password
+          
         }
          userlogin(data).then(( res=>{
           if(res.data.code==200){

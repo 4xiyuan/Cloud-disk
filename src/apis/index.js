@@ -70,3 +70,41 @@ export function rename(param) {
 		data:param,
 	})
 }
+//查询指定目录下的目录(文件)
+export function getfile(param) {
+    return httpRequest({
+		url: '/api/contents/'+param.userId+'/'+param.belong,
+		method: 'get',
+	})
+}
+//放入回收站
+export function recycler(param) {
+    return httpRequest({
+		url: '/api/recycler/'+param.userId,
+		method: 'post',
+		data:param,
+	})
+}
+//查询回收站
+export function getrecycler(param) {
+    return httpRequest({
+		url: '/api/recycler/'+param.userId,
+		method: 'get',
+	})
+}
+//还原文件
+export function reduction(param) {
+    return httpRequest({
+		url: '/api/recycler/'+param.userId,
+		method: 'put',
+		data:param,
+	})
+}
+//文件移动
+export function movement(param) {
+    return httpRequest({
+		url: '/api/movement/'+param.userId,
+		method: 'put',
+		data:param,
+	})
+}

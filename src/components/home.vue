@@ -11,14 +11,14 @@
                     <i class="el-icon-more"></i>
                   </span>
                   <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item v-if="item.fileType!='folder'"  @click.native="prev(item.fileName,item.belong)" >预览</el-dropdown-item>
+                    <el-dropdown-item v-if="item.fileType!='folder'"  @click.native="prev(item.fileName,item.belong,item.fileType)" >预览</el-dropdown-item>
                     <el-dropdown-item v-if="item.fileType=='folder'"  @click.native="open(item.fileName,item.belong)" >打开</el-dropdown-item>
                     <el-dropdown-item v-else @click.native="down(item.fileName,item.belong)" >下载</el-dropdown-item>
-                    <el-dropdown-item @click.native="Rename(item.fileName,item.belong,item.fileType)">重命名</el-dropdown-item>
-                    <el-dropdown-item @click.native="Move()">移动</el-dropdown-item>
+                    <el-dropdown-item @click.native="Rename(item.fileName,item.belong,item.fileType,item.fileId)">重命名</el-dropdown-item>
+                    <el-dropdown-item @click.native="Move(item.fileId)">移动</el-dropdown-item>
                     <el-dropdown-item >分享</el-dropdown-item>
                     <el-dropdown-item v-if="item.fileType!='folder'" >移动至我的隐私</el-dropdown-item>
-                    <el-dropdown-item ><span style="color: rgb(255, 0, 0);">移至回收站</span></el-dropdown-item>
+                    <el-dropdown-item @click.native="Recycler(item.fileId)" ><span style="color: rgb(255, 0, 0);">移至回收站</span></el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
             </div>
@@ -58,14 +58,29 @@
 
       <!-- 移动文件 -->
       <el-dialog
-        title="移动至"
+        class="a1"
         :visible.sync="movetype"
-        width="400px">
-        <div>
-          
+        width="450px">
+        <div slot="title" class="move-title">
+          移动至
+          <div v-if="record.length<=1" class="move-title-back" >
+            <i class="el-icon-back"></i>
+          </div>
+          <div v-else class="move-title-back2" >
+            <i class="el-icon-back" @click="belongback()"></i>
+          </div>
+          </div>
+        <div class="move-box">
+          <li style="list-style-type: none;" v-for="item,index in movelist" :key="index">
+            <div v-if="item.fileType=='folder'" @click="Refresh(item.cbelong,item.fileName)" class="move-min-box">
+              <div class="move-img"><img src="../../public/photo/folder.png" width="40px" height="32px"></div>
+              <div class="move-text">{{item.fileName}}</div>
+            </div>
+          </li>
         </div>
         <span slot="footer" class="dialog-footer">
-          <el-button type="primary" @click="enames()">确 定</el-button>
+          <span style="float:left;color: rgb(58, 140, 255);">移动至&nbsp;<span style="color: rgb(177, 176, 176);">{{CurrentLocation}}</span></span>
+          <el-button type="primary" @click="Movement()">移动到此处</el-button>
         </span>
       </el-dialog>
 
@@ -89,6 +104,16 @@
           <div v-if="filestatus=='jpg'||filestatus=='png'" class="img-box">
               <el-image :src="src"></el-image>
           </div>
+
+          <div>
+              <iframe
+                v-if="filestatus=='pdf'"
+                :src="src"
+                frameborder="0"
+                width="100%"
+                height="500px"
+              ></iframe>
+          </div>
         </div>
       </el-drawer>
     
@@ -100,13 +125,19 @@
 
 <script type="text/javascript">
 import download from "downloadjs";
-import {downloads,file,rename} from "../apis/index"
+import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
    export default {
     inject:['reload'],
    data() {
        return {
+        //文件移动选择框的当前位置
+        CurrentLocation:"全部文件",
+        //总查询记录
+        record:[],
+        //保存文件的路径
+        preservation:null,
         //文件预览的类型
-        filestatus:'mp4',
+        filestatus:null,
         //文件预览的地址
         src:null,
         controls: {
@@ -138,6 +169,8 @@ import {downloads,file,rename} from "../apis/index"
           NewFolderNames:null,
           //文件列表
           list:[],
+          //移动至文件列表
+          movelist:[],
           //全选
           checkeds:false,
           //文件重命名层
@@ -145,6 +178,9 @@ import {downloads,file,rename} from "../apis/index"
        }
    },
    created(){
+    this.$bus.$on('RefreshData',() =>{
+        this.getuserfile()
+      })
     this.getuserfile()
     this.listnum()
    },
@@ -168,8 +204,7 @@ import {downloads,file,rename} from "../apis/index"
       }
     },
     'Searchbox'(){
-      console.log()
-      if(this.Searchbox!=null&&this.Searchbox!=""&&this.Searchbox!=" "){
+      if(this.Searchbox!=null&&this.Searchbox!=""&&this.Searchbox!='null'){
         this.isshow = true
         this.list = []
         let data = {
@@ -187,15 +222,100 @@ import {downloads,file,rename} from "../apis/index"
           }))
         
       }else{
-        console.log(111)
         this.getuserfile()
         this.isshow = false
       }
     }
    },
    methods:{
+    //确定移动文件
+    Movement(){
+      let data = {
+        userId:'1',
+        fileId:this.userFileId,
+        belongId:this.preservation
+      }
+      movement(data).then((res=>{
+        this.getuserfile()
+        this.movetype = false
+        this.$message({
+          message: '文件移动完成！',
+          type: 'success'
+        });
+      }))
+    },
+    //保存列表后退
+    belongback(){
+      this.record.splice(this.record.length-1,1)
+      let data = {
+        userId:'1',
+        belong:this.record[this.record.length-1].belong,
+      }
+      getfile(data).then((res=>{
+        this.movelist = res.data.data
+        this.preservation = this.movelist[0].belongId
+        if(this.record<=1){
+          this.CurrentLocation = "全部文件"
+        }else{
+          this.CurrentLocation = this.record[this.record.length-1].name
+        }
+      }))
+      
+    },
+    //加入回收站
+    Recycler(id){
+      let data = {
+        userId:'1',
+        fileId:id,
+      }
+      recycler(data).then((res=>{
+        this.getuserfile()
+        this.$message({
+          message: '文件已加入回收站！',
+          type: 'success'
+        });
+      }))
+    },
+    //刷新文件保存列表
+    Refresh(belong,name){
+      let data = {
+        userId:'1',
+        belong:belong,
+      }
+      this.record.push({belong:belong,name:name})
+      this.CurrentLocation = name
+      getfile(data).then((res=>{
+        console.log(res)
+        if(res.data.code==200){
+          this.movelist = res.data.data
+          this.preservation = this.movelist[0].belongId
+        }else if(res.data.code==201){
+          this.movelist = res.data.data
+          this.preservation = res.data.data
+        }
+        
+      }))
+    },
+    //文件移动
+    Move(id){
+      this.userFileId = id
+      this.record = []
+      let data = {
+        userId:'1',
+        belong:'1@-.@',
+      }
+      this.record.push({belong:'1@-.@',name:"全部文件"})
+      getfile(data).then((res=>{
+        console.log(res)
+        this.movelist = res.data.data
+        this.preservation = this.movelist[0].belongId
+        this.movetype = true
+      }))
+  
+    },
     //文件预览
-    prev(name,belong){
+    prev(name,belong,type){
+      this.filestatus = type
       let Name = belong+name+''
       Name = Name.replace(/\\/g, '@-.@')
       let data = {
@@ -207,11 +327,9 @@ import {downloads,file,rename} from "../apis/index"
           this.src = res.data.data
           this.drawer = true
         }
-        
       }))
       
     },
-
     //获取用户文件信息
     getuserfile(){
       let data = {
@@ -220,6 +338,7 @@ import {downloads,file,rename} from "../apis/index"
       file(data).then((res=>{
         if(res.status==200){
           this.list = res.data.data  
+          sessionStorage.setItem('outsideBelongId',this.list[0].belongId)
         }
       }))
     },
@@ -306,14 +425,17 @@ import {downloads,file,rename} from "../apis/index"
       }))
     },
     //修改文件名层弹出
-    Rename(name,belong,type){
+    Rename(name,belong,type,id){
       this.NewFolderNames = name
       this.filetype = type
       this.dialogVisibles = true
       let data = {
         id:'1',
-        oldFilePath:belong+name,
-        newFilePath:belong
+        belong:belong,
+        newName:this.NewFolderNames,
+        oldName:name,
+        type:type,
+        fileId:id
       }
       this.dat = data
     },
@@ -324,7 +446,7 @@ import {downloads,file,rename} from "../apis/index"
         return
         }
       let data = this.dat
-      data.newFilePath = data.newFilePath+this.NewFolderNames
+      data.newName = this.NewFolderNames
       rename(data).then((res=>{
         if(res.data.code==200){
           this.dialogVisible = false
@@ -351,7 +473,7 @@ import {downloads,file,rename} from "../apis/index"
       if(type=="folder"){
         this.open(name,belong)
       }else{
-        this.prev(name,belong)
+        this.prev(name,belong,type)
       }
     },
     beforeDestroy() {
@@ -369,6 +491,58 @@ import {downloads,file,rename} from "../apis/index"
     margin:0;
     padding:0;
   }
+.move-title-back{
+  color: rgb(183, 183, 183);
+  cursor:no-drop;
+  font-size: 25px;
+  position: absolute;
+}
+.move-title-back2{
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  font-size: 25px;
+  position: absolute;
+}
+.move-title{
+  text-align: center;
+  font-size: 18px;
+}
+.move-text{
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  width: 280px;
+  font-size: 18px;
+  height: 30px;
+  margin-top: 10px;
+  line-height: 30px;
+  float: left;
+  margin-left: 10px;
+}
+.move-img{
+  float: left;
+  margin-top: 9px;
+  margin-left: 20px;
+  }
+.move-min-box{
+  cursor: pointer;
+  border-radius: 15px;
+  height: 50px;
+}
+.move-min-box:hover{
+  background: rgb(224, 224, 224);
+}
+.el-dialog__wrapper >>> .el-dialog{
+  border-radius: 20px;
+  }
+.a1 >>>.el-dialog__body{
+  height: 300px;
+  overflow: auto;
+}
+.move-box{
+  min-height: 300px;
+
+}
 .big-box{
   top: 0;
   left: 0;

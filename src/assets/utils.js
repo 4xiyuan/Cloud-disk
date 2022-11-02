@@ -13,4 +13,3 @@ export function fileParse(file, type = "base64") {
     });
 };
 
-
