@@ -23,6 +23,7 @@
 import { fileParse } from "./assets/utils";
 import axios from "axios";
 import SparkMD5 from "spark-md5";
+import {hash,upload} from "../src/apis/index"
 
 export default {
   name: "upload",
@@ -45,6 +46,28 @@ export default {
     },
   },
   methods: {
+    //获取文件哈希值
+    getFileHash(file){
+      return new Promise( resolve => {
+        const reader = new FileReader();
+        reader.readAsArrayBuffer(file);
+        reader.onload = ev => {
+          let buffer = ev.target.result,
+              spark = new SparkMD5.ArrayBuffer(),
+              HASH,
+              suffix;
+          spark.append(buffer);
+          HASH = spark.end();
+          suffix = file.name.substring(file.name.lastIndexOf(".") + 1);
+          resolve({
+            buffer,
+            HASH,
+            suffix,
+            filename: `${HASH}.${suffix}`
+          });
+        };
+      });
+    },
     //触发上传按钮事件
     shang(){
       this.$refs.me.click()
@@ -53,41 +76,86 @@ export default {
     },
     async changeFile(file) {
       if (!file) return;
-      let a = {
-        name:file.name,
-        size:(file.size/1024/1024).toFixed(2)>1000 ? (file.size/1024/1024/1024).toFixed(2)+"GB":(file.size/1024/1024).toFixed(2)+"MB",
-        jindu:0,
-        bott:true,
-        type:/\.([0-9a-zA-Z]+)$/i.exec(file.name)[1]?/\.([0-9a-zA-Z]+)$/i.exec(file.name)[1]:""
+      let {
+        HASH,
+        suffix
+      } = await this.getFileHash(file.raw);
+      let d = {
+        userId:'1',
+        hash:HASH
       }
-      this.filelist.push(a)
-      this.$emit("numdata",this.filelist)
-      file = file.raw;
-      // 创建100个切片
-      let partList = [],
-        partsize = file.size / 100,
-        cur = 0;
-        
-      let datas = {
-          data:[],
-          "type":1
-        }
-      for (let i = 0; i < 100; i++) {
-        let item = {
-          chunk: file.slice(cur, cur + partsize),
-          filename: file.name,
-          way:0,
-        };
-        cur += partsize;
-        datas.data.push(item)
-        
-      }
-      partList.push(datas);
+      await hash(d).then((res=>{
+        if(res.data.code==200){
+          let formData = new FormData();
+          formData.append("MFile", "1");
+          formData.append("shunk", "1");
+          formData.append("shunks",1);
+          formData.append("fileSize",file.size);
+          formData.append("hash",HASH);
+          formData.append("filePath",res.data.data[0].filePath);
+          if(sessionStorage.getItem('paths')&&sessionStorage.getItem('paths')!=''){
+            formData.append("belong", sessionStorage.getItem('paths'));
+          }else{
+            formData.append("belong", '1\\');
+          }
+          formData.append("way", 1);
+          formData.append("fileName", file.name);
+          return axios
+            .post("http://localhost:8089/api/upload/1", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            }).then((res=>{
+              console.log(res)
+            }))
+        }else{
+          let a = {
+              name:file.name,
+              size:(file.size/1024/1024).toFixed(2)>1000 ? (file.size/1024/1024/1024).toFixed(2)+"GB":(file.size/1024/1024).toFixed(2)+"MB",
+              jindu:0,
+              bott:true,
+              type:/\.([0-9a-zA-Z]+)$/i.exec(file.name)[1]?/\.([0-9a-zA-Z]+)$/i.exec(file.name)[1]:""
+            }
+            this.filelist.push(a)
+            this.$emit("numdata",this.filelist)
+            file = file.raw;
 
-      this.partList = partList;
-      this.sendRequest(file.name);
+            // 创建100个切片
+            let partList = [],
+              partsize = null,
+              cur = 0;
+            if(file.size%100!=0){
+              partsize = Math.floor(file.size/100)
+            }else{
+              partsize = file.size/100
+            }
+            
+              
+            let datas = {
+                data:[],
+                "type":1
+              }
+            for (let i = 0; i < 100; i++) {
+              let ss;
+              if(i==99){
+                ss=file.slice(cur, cur + partsize+file.size%100)
+              }else{
+                ss= file.slice(cur, cur + partsize)
+              }
+              let item = {
+                chunk: ss,
+                filename: file.name,
+                way:0,
+              };
+              cur += partsize;
+              datas.data.push(item)
+            }
+            partList.push(datas);
+
+            this.partList = partList;
+            this.sendRequest(file.name,HASH);
+        }
+      }))
     },
-    async sendRequest(name) {
+    async sendRequest(name,HASH) {
       // 根据100个切片创造100个请求（集合）
       let requestList = [];
       this.partList[0].data.forEach((item, index) => {
@@ -96,7 +164,8 @@ export default {
           let formData = new FormData();
           formData.append("MFile", item.chunk);
           formData.append("shunk", index);
-          formData.append("shunks", 100);
+          formData.append("hash", HASH);
+          formData.append("shunks", this.partList[0].data.length);
           if(sessionStorage.getItem('paths')&&sessionStorage.getItem('paths')!=''){
             formData.append("belong", sessionStorage.getItem('paths'));
           }else{
@@ -116,6 +185,17 @@ export default {
                           this.filelist[x].status=1
                         }
                       }
+                for(let x =0;x<this.filelist.length;x++){
+                        if(this.filelist[x].name==item.filename){
+                          this.filelist[x].jindu=index/this.partList[0].data.length*100
+                        }
+                        let jindu = {
+                          index:x,
+                          jindu:100
+                        }
+
+                        this.$emit("uploadjindu",jindu)
+                      }
                 //上传完成后刷新数据
                 if(this.getQueryString('belong')+this.getQueryString('name')){
                   let name =this.getQueryString('name')
@@ -129,15 +209,16 @@ export default {
               if (result.code == 200) {
                 // console.log("已经传送完第"+index+"片")
               }
-              if (result.code == 200&&result.msg=="分片成功！") {
+              if (result.code == 201&&result.msg=="分片成功！") {
                       for(let x =0;x<this.filelist.length;x++){
                         if(this.filelist[x].name==item.filename){
-                          this.filelist[x].jindu+=1
+                          this.filelist[x].jindu=index/this.partList[0].data.length*100
                         }
                         let jindu = {
                           index:x,
                           jindu:this.filelist[x].jindu
                         }
+
                         this.$emit("uploadjindu",jindu)
                       }
               }

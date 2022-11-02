@@ -19,7 +19,7 @@
             <div v-if="item.fileType=='folder'" class="tubiao" ><img style="margin-top: 10px;" :src="require('../../public/photo/'+item.fileType+'.png')" width="100px" height="80px"></div>
             <div v-else class="tubiao" ><img style="margin-top: 10px;" :src="require('../../public/photo/'+item.fileType+'.png')" width="80px" height="80px"></div>
             <div  class="Alayer-text">{{item.fileName}}</div>
-            <div class="time">{{item.uploadTime}}</div>
+            <div class="time">{{item.time}}</div>
             <div style="height: 10px;"></div>
           </div>
         </div>

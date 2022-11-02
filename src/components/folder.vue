@@ -13,12 +13,12 @@
                   <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item v-if="item.fileType!='folder'"  @click.native="prev(item.fileName,item.belong)" >预览</el-dropdown-item>
                     <el-dropdown-item v-if="item.fileType=='folder'" @click.native="open(item.fileName,item.belong)" >打开</el-dropdown-item>
-                    <el-dropdown-item v-else @click.native="down(item.fileName,item.belong)" >下载</el-dropdown-item>
+                    <el-dropdown-item v-else @click.native="down(item.filePath,item.fileName,item.fileType)" >下载</el-dropdown-item>
                     <el-dropdown-item @click.native="Rename(item.fileName,item.belong,item.fileType,item.fileId)">重命名</el-dropdown-item>
                     <el-dropdown-item  @click.native="Move(item.fileId)">移动</el-dropdown-item>
                     <el-dropdown-item >分享</el-dropdown-item>
                     <el-dropdown-item >移动至我的隐私</el-dropdown-item>
-                    <el-dropdown-item @click.native="Recycler(item.fileId)"><span style="color: rgb(255, 0, 0);">移至回收站</span></el-dropdown-item>
+                    <el-dropdown-item @click.native="Recycler(item.fileId,item.fileType)"><span style="color: rgb(255, 0, 0);">移至回收站</span></el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
             </div>
@@ -79,8 +79,20 @@
           </li>
         </div>
         <span slot="footer" class="dialog-footer">
-          <span style="float:left;color: rgb(58, 140, 255);">移动至&nbsp;<span style="color: rgb(177, 176, 176);">{{CurrentLocation}}</span></span>
-          <el-button type="primary" @click="Movement()">移动到此处</el-button>
+          <span style="float:left;color: rgb(58, 140, 255);font-size:14px;float: left;">移动至：</span>
+            <li v-if="record.length<=5" style="list-style-type: none;float: left;font-size:14px;" v-for="item,index in record">
+              <span v-if="index!=record.length-1" style="color: rgb(177, 176, 176);">{{item.name}}\</span>
+              <span v-else style="color: rgb(0, 0, 0);">{{item.name}}\</span>
+            </li>
+            <li v-if="record.length>5" style="list-style-type: none;float: left;font-size:14px;" v-for="item,index in record">
+              <span v-if="index==0" style="color: rgb(177, 176, 176);">{{item.name}}\</span>
+              <span v-if="index==record.length-4" style="color: rgb(177, 176, 176);">...\</span>
+              <span v-if="index==record.length-3" style="color: rgb(177, 176, 176);">{{item.name}}\</span>
+              <span v-if="index==record.length-2" style="color: rgb(177, 176, 176);">{{item.name}}\</span>
+              <span v-if="index==record.length-1" style="color: rgb(0, 0, 0);">{{item.name}}\</span>
+            </li>
+          <!-- <el-button type="primary" @click="Movement()">移动到此处</el-button> -->
+          <button @click="Movement()">移动到此处</button>
         </span>
       </el-dialog>
 
@@ -208,7 +220,7 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
       }
       movement(data).then((res=>{
         let name =this.$route.query.name
-      let belong = this.$route.query.belong
+        let belong = this.$route.query.belong
         this.getuserfile(name,belong)
         this.movetype = false
         this.$message({
@@ -227,23 +239,19 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
       getfile(data).then((res=>{
         this.movelist = res.data.data
         this.preservation = this.movelist[0].belongId
-        if(this.record<=1){
-          this.CurrentLocation = "全部文件"
-        }else{
-          this.CurrentLocation = this.record[this.record.length-1].name
-        }
       }))
       
     },
     //加入回收站
-    Recycler(id){
+    Recycler(id,type){
       let data = {
         userId:'1',
         fileId:id,
+        type:type
       }
       recycler(data).then((res=>{
-      let name =this.$route.query.name
-      let belong = this.$route.query.belong
+        let name =this.$route.query.name
+        let belong = this.$route.query.belong
         this.getuserfile(name,belong)
         this.$message({
           message: '文件已加入回收站！',
@@ -258,7 +266,6 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
         belong:belong,
       }
       this.record.push({belong:belong,name:name})
-      this.CurrentLocation = name
       getfile(data).then((res=>{
         console.log(res)
         if(res.data.code==200){
@@ -345,7 +352,7 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
       }
       
     },
-    async down(name,belong){
+    async down(filepath,name,type){
       //文件流
       // let data = {
       //   fileNath:"D:@bishe@file@1@大视频.mp4",
@@ -366,43 +373,47 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
       // }))
 
       //url地址
-      let Name = belong+name+''
-      Name = Name.replace(/\\/g, '@-.@')
       let data = {
-        fileName:Name,
+        fileName:filepath,
         id:"1"
       }
-      console.log(data)
       downloads(data).then(( async res=>{
         if (res.status==200) {
-            // const link = document.createElement('a')
-            // link.href = res.data.data
-            // link.target = '_blank'
-            // link.setAttribute('download', '11.mp4') 
-            // document.body.appendChild(link)
-            // link.click()
+          console.log(type)
+          if(type=='mp4'||type=='jpg'||type=='png'||type=='txt'){
             const h = this.$createElement;
-            let notify= this.$notify({
-              title:'文件解析中',
-              dangerouslyUseHTMLString: true,
-              message:h('div',[h('i',{class:"el-icon-loading"},),h( 'div','文件越大,解析越耗时,请耐心等待！'),]),
-              showClose: false,
-              duration:0,
-            });
-            fetch(res.data.data).then(res => res.blob()).then(blob => { // 将链接地址字符内容转变成blob地址
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = name;
-                    // link.target = '_blank';
-                    document.body.appendChild(link);
-                    link.click();
-                    notify.close()
-                    link.remove();
-                }).catch(() => {
-                    notify.close()
-                    this.$message.error('服务器出错,请稍后重试！');
-                    
-                });
+                        let notify= this.$notify({
+                          title:'文件解析中',
+                          dangerouslyUseHTMLString: true,
+                          message:h('div',[h('i',{class:"el-icon-loading"},),h( 'div','文件越大,解析越耗时,请耐心等待！'),]),
+                          showClose: false,
+                          duration:0,
+                        });
+
+                        fetch(res.data.data).then(res => res.blob()).then(blob => { // 将链接地址字符内容转变成blob地址
+                                const link = document.createElement('a');
+                                link.href = URL.createObjectURL(blob);
+                                link.download = name;
+                                // link.target = '_blank';
+                                document.body.appendChild(link);
+                                link.click();
+                                notify.close()
+                                link.remove();
+                            }).catch(() => {
+                                notify.close()
+                                this.$message.error('服务器出错,请稍后重试！');
+                                
+                            });
+          }else{
+            const link = document.createElement('a')
+            link.href = res.data.data
+            // link.target = '_blank'
+            link.setAttribute('download', name) 
+            document.body.appendChild(link)
+            link.click()
+          }
+
+            
           }
       }))
     },
@@ -474,6 +485,36 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
     margin:0;
     padding:0;
   }
+
+
+button {
+  margin-top: 30px;
+  padding: 1.3em 3em;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  font-weight: 500;
+  color: #000;
+  background-color: #fff;
+  border: none;
+  border-radius: 45px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease 0s;
+  cursor: pointer;
+  outline: none;
+}
+
+button:hover {
+  background-color: #23c483;
+  box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
+  color: #fff;
+  transform: translateY(-7px);
+}
+
+button:active {
+  transform: translateY(-1px);
+}
+
   .move-title-back{
   color: rgb(183, 183, 183);
   cursor:no-drop;

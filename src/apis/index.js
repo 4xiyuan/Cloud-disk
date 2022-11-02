@@ -108,3 +108,10 @@ export function movement(param) {
 		data:param,
 	})
 }
+//文件校验
+export function hash(param) {
+    return httpRequest({
+		url: '/api/hash/'+param.userId+"/"+param.hash,
+		method: 'get',
+	})
+}

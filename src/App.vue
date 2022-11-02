@@ -113,7 +113,7 @@
               </div>
               <div style="margin-left: 95px;margin-top: -60px;font-size:18px;width:190px;-webkit-box-orient: vertical;display: -webkit-box;overflow-wrap: break-word;overflow:hidden;text-overflow:ellipsis;-webkit-line-clamp:1;">{{item.name}}</div>
               <div style="margin-left: 95px;margin-top: 15px;font-size:14px;">{{item.size}}</div>
-              <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100" style="margin-left: 360px;margin-top: -10px;font-size:16px;">{{item.jindu+1}}%</div>
+              <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100" style="margin-left: 340px;margin-top: -10px;font-size:16px;">{{item.jindu+1}}%</div>
               <div v-if="(item.jindu+1)<=0" style="margin-left: 320px;margin-top: -40px;font-size:18px;">解析中</div>
               <div v-if="(item.jindu+1)==100" style="margin-left: 300px;margin-top: -40px;font-size:18px;">上传完成</div>
               <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100"  style="margin-left: 300px;margin-top: -60px;font-size:30px;cursor: pointer;position: absolute;">
