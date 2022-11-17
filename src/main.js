@@ -5,6 +5,8 @@ import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
 import axios from 'axios' 
 import uploader from 'vue-simple-uploader'
+import Contextmenu from "vue-contextmenujs"
+
 
 axios.defaults.baseURL = '/api' //关键代码
 Vue.config.productionTip = false
@@ -56,8 +58,8 @@ Vue.prototype.setSessionItem = function (key, newVal) {
 };
 
 Vue.use(uploader)
-Vue.use(ElementUI);
-
+Vue.use(ElementUI)
+Vue.use(Contextmenu)
 // Vue.prototype.$http = http;
 new Vue({
   router,

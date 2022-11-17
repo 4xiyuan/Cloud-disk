@@ -1,5 +1,22 @@
 <template>
   <div id="app">
+    <div v-if="listLength&&ishome" class="nulls">
+              <div class="card-box">
+                <div class="card-info">
+                  <div class="card-avatar"><img src="../public/photo/LOGO.png" width="60px" height="60px"></div>
+                    <div class="card-title">暂无文件 悬浮鼠标上传文件</div>
+                    <ul class="card-social">
+                      <li class="card-social__item">
+                        <button class="button-box" @click="upload()">上传文件</button>
+                      </li>
+                      <li class="card-social__item">
+                        <button class="button-box" @click="dialogVisible = true">新建文件夹</button>
+                      </li>
+                    </ul>
+                </div>
+              </div>
+    </div>
+
       <div v-if="usert=='true'" :class="index&&usert=='true' ?'Toptaskbar':'Toptaskbar2'">
           <el-breadcrumb  separator=">">
               <el-breadcrumb-item v-for="(item,index) in 1" :to="{ path: '/' }" :replace ="true">{{routeTitle}}</el-breadcrumb-item>
@@ -48,7 +65,7 @@
                 <el-dropdown-item >我的分享</el-dropdown-item>
                 <el-dropdown-item >待定</el-dropdown-item>
                 <el-dropdown-item >待定</el-dropdown-item>
-                <el-dropdown-item >退出登入</el-dropdown-item>
+                <el-dropdown-item @click.native="cancellation()">退出登入</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
           </div>
@@ -115,7 +132,7 @@
               <div style="margin-left: 95px;margin-top: 15px;font-size:14px;">{{item.size}}</div>
               <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100" style="margin-left: 340px;margin-top: -10px;font-size:16px;">{{item.jindu+1}}%</div>
               <div v-if="(item.jindu+1)<=0" style="margin-left: 320px;margin-top: -40px;font-size:18px;">解析中</div>
-              <div v-if="(item.jindu+1)==100" style="margin-left: 300px;margin-top: -40px;font-size:18px;">上传完成</div>
+              <div v-if="item.jindu==100" style="margin-left: 300px;margin-top: -40px;font-size:18px;">上传完成</div>
               <div v-if="(item.jindu+1)>0&&(item.jindu+1)<100"  style="margin-left: 300px;margin-top: -60px;font-size:30px;cursor: pointer;position: absolute;">
                 <div v-if="(item.bott)" @click="zan(index)"><i class="el-icon-video-pause"></i></div>
                 <div v-else @click="ji(index)"><i class="el-icon-caret-right"></i></div>
@@ -128,7 +145,7 @@
           </li>
         </div>
       </div>
-      <uploads v-show="false" ref="uploads" v-on:numdata="uploaddata" v-on:jindu="uploadjindu"></uploads></uploads>
+      <uploads v-show="false" ref="uploads" v-on:numdata="uploaddata" v-on:jindu="uploadjindu"></uploads>
       </div>
       
   </div>
@@ -150,6 +167,10 @@ import {endUpload,addfolder} from '../src/apis/index'
   },
    data() {
        return {
+          //当前页面是否尚未有文件
+          listLength:false,
+          //当前是否为主页或文件夹页
+          ishome:true,
           //当前路由标签
           routeTitle:sessionStorage.getItem('zhutitle'),
           isRouterAlive:true,
@@ -187,10 +208,16 @@ import {endUpload,addfolder} from '../src/apis/index'
    watch: {
     '$route' () {
       //判断是否登录
-      if(this.getQueryString('belong')+this.getQueryString('name')){
-        sessionStorage.setItem('paths',this.getQueryString('belong')+this.getQueryString('name')+'\\')
+      if(this.$route.path=='/folder'||this.$route.path=='/home'){
+        this.ishome = true
       }else{
+        this.ishome = false
+      }
+
+      if(this.$route.path!='/folder'){
         sessionStorage.removeItem('paths')
+      }else{
+        sessionStorage.setItem('paths',this.getQueryString('belong'))
       }
       this.initData();
       //路由跳转时清空搜索框内容
@@ -223,7 +250,27 @@ import {endUpload,addfolder} from '../src/apis/index'
     }
   },
   mounted(){
-    
+    window.addEventListener("setItem", () => {
+      if(sessionStorage.getItem("shang")=='true'){
+        this.$refs.uploads.shang()
+        sessionStorage.setItem('shang','false')
+      }
+      if(sessionStorage.getItem("xinjian")=='true'){
+        this.dialogVisible=true
+        sessionStorage.setItem('xinjian','false')
+      }
+      if(sessionStorage.getItem("listLength")=='true'){
+          this.listLength = true
+      }else if(sessionStorage.getItem("listLength")=='false'){
+        this.listLength = false
+      }
+      if(sessionStorage.getItem('success')){
+        this.$message.success(sessionStorage.getItem('success'))
+        let timer = setTimeout(() => {
+          sessionStorage.removeItem("success")
+          },100)
+      }
+    });
     
      // 监听返回事件,点击系统返回时
     if(window.history && window.history.pushState){
@@ -231,6 +278,12 @@ import {endUpload,addfolder} from '../src/apis/index'
     }
   },
    methods:{
+    //注销
+    cancellation(){
+      sessionStorage.setItem('users','false')
+      this.$message.success('退出成功！');
+      this.$router.push('/login')
+    },
     //获取当前url地址参数
     getQueryString(name) {
           var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
@@ -252,21 +305,21 @@ import {endUpload,addfolder} from '../src/apis/index'
         return
       }
       let data = {
-        id:'1',
-        filePath:null,
+        id:sessionStorage.getItem('userid'),
+        belongId:null,
         fileName:this.NewFolderName
       }
-      if(sessionStorage.getItem('paths')&&sessionStorage.getItem('paths')!=''){
-            data.filePath=sessionStorage.getItem('paths')+this.NewFolderName
+      if(sessionStorage.getItem('paths')){
+            data.belongId=sessionStorage.getItem('paths')
       }else{
-            data.filePath='1\\'+this.NewFolderName
+            data.belongId=""
       }
-      console.log(data)
       addfolder(data).then(res=>{
+        console.log(res)
         if(res.data.code==200){
           this.dialogVisible = false
           window.location.reload();
-          this.$message.success('新建文件夹成功！');
+          this.setSessionItem('success','新建文件夹成功！')
           this.NewFolderName = null
         }else{
            this.$message.error(res.data.msg);
@@ -345,6 +398,147 @@ import {endUpload,addfolder} from '../src/apis/index'
 </script>
 
 <style >
+.button-box {
+cursor: pointer;
+ padding: 10px 15px;
+ border: unset;
+ border-radius: 25px;
+ color: #212121;
+ z-index: 1;
+ background: #e8e8e8;
+ position: relative;
+ font-weight: 1000;
+ font-size: 17px;
+ -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+ box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+ transition: all 250ms;
+ overflow: hidden;
+}
+
+.button-box::before {
+ content: "";
+ position: absolute;
+ top: 0;
+ left: 0;
+ height: 100%;
+ width: 0;
+ border-radius: 15px;
+ background-color: #212121;
+ z-index: -1;
+ -webkit-box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+ box-shadow: 4px 8px 19px -3px rgba(0,0,0,0.27);
+ transition: all 250ms
+}
+
+.button-box:hover {
+ color: #e8e8e8;
+}
+
+.button-box:hover::before {
+ width: 100%;
+}
+
+
+
+.nulls{
+  z-index: 2;
+  position: absolute;
+  width: 100%;
+  height: 100vh;
+}
+.card-box {
+  border-radius: 25px;
+  margin-left: 45%;
+  margin-top: 18%;
+ cursor: pointer;
+ width: 300px;
+ height: 200px;
+ background: rgb(255, 255, 255);
+ /* background: linear-gradient(to top, #f1e1c1 0%, #fcbc97 100%); */
+ padding: 2rem 1.5rem;
+ transition: box-shadow .3s ease, transform .2s ease;
+}
+
+.card-info {
+ display: flex;
+ flex-direction: column;
+ justify-content: center;
+ align-items: center;
+ transition: transform .2s ease, opacity .2s ease;
+}
+
+/*Image*/
+.card-avatar {
+ --size: 60px;
+ /* background: linear-gradient(to top, #f1e1c1 0%, #fcbc97 100%); */
+ width: var(--size);
+ height: var(--size);
+ border-radius: 50%;
+ transition: transform .2s ease;
+ margin-bottom: 1rem;
+}
+
+
+/*Card footer*/
+.card-social {
+ transform: translateY(200%);
+ display: flex;
+ justify-content: space-around;
+ width: 100%;
+ opacity: 0;
+ transition: transform .2s ease, opacity .2s ease;
+}
+
+.card-social__item {
+  float: left;
+ list-style: none;
+}
+
+.card-social__item svg {
+ display: block;
+ height: 18px;
+ width: 18px;
+ fill: #515F65;
+ cursor: pointer;
+ transition: fill 0.2s ease ,transform 0.2s ease;
+}
+
+/*Text*/
+.card-title {
+ color: #333;
+ font-size: 1.5em;
+ font-weight: 600;
+ line-height: 2rem;
+}
+
+.card-subtitle {
+ color: #859ba8;
+ font-size: 0.8em;
+}
+
+/*Hover*/
+.card-box:hover {
+ box-shadow: 0 8px 50px #23232333;
+}
+
+.card-box:hover .card-info {
+ transform: translateY(-5%);
+}
+
+.card-box:hover .card-social {
+ transform: translateY(100%);
+ opacity: 1;
+}
+
+.card-social__item svg:hover {
+ fill: #232323;
+ transform: scale(1.1);
+}
+
+.card-avatar:hover {
+ transform: scale(1.1);
+}
+
 .xuanfu{
   position: fixed;
   bottom: 10px;
@@ -476,15 +670,14 @@ body::-webkit-scrollbar {
 .Toptaskbar{
   position: fixed;
   z-index: 200;
-  width: 100%;
+  width: 62%;
   margin-left: 240px;
   height: 90px;
   transition: all .4s;
   background: rgb(255, 255, 255);
 }
 .Toptaskbar2{
-  
-  width: 100%;
+  width: 72%;
   z-index: 200;
   position: fixed;
   background: rgb(255, 255, 255);

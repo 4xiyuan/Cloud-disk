@@ -23,7 +23,7 @@
               <input ref="Password"  class="password" @focus="ups(3)" @blur="downs(2)"  v-model="password" type="password">
               <span @click="userju('Password')" :class="[{'up1':Stylevariable1==3},{'down1':Stylevariable1==2}]">密码</span>
           </div>
-              <el-button class="login" type="primary" round @click="logins()">登&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;录</el-button>
+              <button @click="logins()" class="button-x">登&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;录</button>
               <span class="text1" @click="next()">没有账号？点我注册！</span>
         </el-carousel-item>
 
@@ -45,7 +45,7 @@
               <input ref="Passwords" class="password" @focus="ups(3)" @blur="downs(2)"  v-model="password" type="password">
               <span @click="userju('Passwords')" :class="[{'up1':Stylevariable1==3},{'down1':Stylevariable1==2}]">输入密码</span>
           </div>
-              <el-button @click="register()" class="login" type="primary" round>注&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;册</el-button>
+              <button @click="register()" class="button-x">注&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;册</button>
               <span class="text1" @click="next()">已有账号？点我登录！</span>
         </el-carousel-item>
       </el-carousel>
@@ -72,7 +72,6 @@
       this.$router.go(0)
     }
       var users = 'false'
-      //开发阶段用sessionStorage部署后端之后记得改为localStorage
       sessionStorage.setItem('users',users)
    },
    methods:{
@@ -84,9 +83,13 @@
           
         }
          userlogin(data).then(( res=>{
+          console.log(res);
           if(res.data.code==200){
             sessionStorage.setItem('users','true')
+            sessionStorage.setItem('belongId',res.data.data.belongId)
+            sessionStorage.setItem('userid',res.data.data.userId)
             sessionStorage.setItem('sidebartype','true')
+            this.$message.success('登录成功！');
             this.$router.push('/home')
           }else{
             this.$message.error('账号或密码错误！');
@@ -158,6 +161,39 @@
     margin:0; 
     padding: 0;
   }
+
+.button-x {
+  width: 150px;
+  margin-top: 320px;
+  margin-left: 125px;
+  padding: 1.3em 3em;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  font-weight: 500;
+  color: #000;
+  background-color: #fff;
+  border: none;
+  border-radius: 45px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease 0s;
+  cursor: pointer;
+  outline: none;
+}
+
+.button-x:hover {
+  background-color: #23c483;
+  box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
+  color: #fff;
+  transform: translateY(-7px);
+}
+
+.button-x:active {
+  transform: translateY(-1px);
+}
+
+
+
 body {
   margin:0;
   padding:0;

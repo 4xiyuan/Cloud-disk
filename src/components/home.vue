@@ -1,9 +1,9 @@
 <template>
-  <div  :class="sidebartypes ? 'xlayer' :'xlayer2'">
-    <div  class="allbox"><el-checkbox @change="StateChange()" v-model="checkeds">全选</el-checkbox></div>
-    <li style="float: left;list-style-type: none;" v-for="item,index in list" :key="index">
-        <div v-if="isshow||(item.belong==item.userId+'/'||item.belong==item.userId+'\\')" class="Alayer " >
-          <div @mouseover="boxindex=index" @mouseleave="boxindex=null" @click="opens(item.fileType,item.fileName,item.belong)" :class="['Alayer-x',{'is-choice':checked[index]} ]">
+  <div @contextmenu.prevent="onContextmenu" :class="sidebartypes ? 'xlayer' :'xlayer2'" >
+    <div v-if="list!=[]&&list!=null" class="allbox"><el-checkbox @change="StateChange()" v-model="checkeds">全选</el-checkbox></div>
+    <li v-if="shuaxin" style="float: left;list-style-type: none;" v-for="item,index in list" :key="index">
+        <div v-if="!isshow&&item.belongId=='' " class="Alayer " >
+          <div @mouseover="boxindex=index" @mouseleave="boxindex=null" @click="opens(item.filePath,item.fileType,item.fileName,item.cbelong)" :class="['Alayer-x',{'is-choice':checked[index]} ]">
             <div @click.stop v-show="boxindex==index||checked[index]"><el-checkbox   v-model="checked[index]"></el-checkbox></div>
             <div v-show="boxindex==index&&!checked[index]" @click.stop class="choicebox">
               <el-dropdown trigger="click" placement="bottom-start">
@@ -11,26 +11,30 @@
                     <i class="el-icon-more"></i>
                   </span>
                   <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item v-if="item.fileType!='folder'"  @click.native="prev(item.fileName,item.belong,item.fileType)" >预览</el-dropdown-item>
-                    <el-dropdown-item v-if="item.fileType=='folder'"  @click.native="open(item.fileName,item.belong)" >打开</el-dropdown-item>
+                    <el-dropdown-item v-if="item.fileType!='folder'"  @click.native="prev(item.filePath,item.fileType)" >预览</el-dropdown-item>
+                    <el-dropdown-item v-if="item.fileType=='folder'"  @click.native="open(item.cbelong)" >打开</el-dropdown-item>
                     <el-dropdown-item v-else @click.native="down(item.filePath,item.fileName,item.fileType)" >下载</el-dropdown-item>
-                    <el-dropdown-item @click.native="Rename(item.fileName,item.belong,item.fileType,item.fileId)">重命名</el-dropdown-item>
-                    <el-dropdown-item @click.native="Move(item.fileId)">移动</el-dropdown-item>
-                    <el-dropdown-item >分享</el-dropdown-item>
+                    <el-dropdown-item @click.native="Rename(item.fileName,item.belongId,item.fileType,item.fileId,item.folderBelongId)">重命名</el-dropdown-item>
+                    <el-dropdown-item @click.native="Move(item.fileId,item.belongId,item.folderBelongId,item.fileType)">移动</el-dropdown-item>
+                    <el-dropdown-item @click.native="Share(item.fileType,item.fileName)">分享</el-dropdown-item>
                     <el-dropdown-item v-if="item.fileType!='folder'" >移动至我的隐私</el-dropdown-item>
-                    <el-dropdown-item @click.native="Recycler(item.fileId,item.fileType)" ><span style="color: rgb(255, 0, 0);">移至回收站</span></el-dropdown-item>
+                    <el-dropdown-item @click.native="Recycler(item.fileId,item.fileType,item.belongId)" ><span style="color: rgb(255, 0, 0);">移至回收站</span></el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
             </div>
             <div v-if="item.fileType=='folder'" class="tubiao" ><img style="margin-top: 10px;" :src="require('../../public/photo/'+item.fileType+'.png')" width="100px" height="80px"></div>
-            <div v-else class="tubiao" ><img style="margin-top: 10px;" :src="require('../../public/photo/'+item.fileType+'.png')" width="80px" height="80px"></div>
+            <div v-else-if="'7zrardocdocxepubjpgpngmp4mp3pdfzipxlsxlsx'.indexOf(item.fileType)!=-1" class="tubiao" >
+              <img style="margin-top: 10px;" :src="require('../../public/photo/'+item.fileType+'.png')" width="80px" height="80px">
+            </div>
+            <div v-else  class="tubiao">
+              <img style="margin-top: 10px;" :src="require('../../public/photo/unknown.png')" width="80px" height="80px">
+            </div>
             <div  class="Alayer-text">{{item.fileName}}</div>
             <div class="time">{{item.uploadTime}}</div>
             <div style="height: 10px;"></div>
           </div>
         </div>
     </li>
-
     <div v-show="SelectedFile!=null" :class="sidebartypes ? 'multi-select' :'multi-select2'">
       <div class="selectbox" title="下载"><img style="margin-top: 5px;" src="../../public/photo/download.png" width="20px" height="20px"></div>
       <div class="selectbox" title="移动至"><img style="margin-top: 5px;" src="../../public/photo/mobile.png" width="20px" height="20px"></div>
@@ -96,6 +100,46 @@
         </span>
       </el-dialog>
 
+      <!--分享文件 -->
+      <el-dialog :visible.sync="sharetype"  width="500px" class="shares">
+        <div class="share-box">
+          <div slot="title" class="share-text">分享文件</div>
+          <div v-if="FileType" class="share-img">
+            <img v-if="FileType=='folder'" style="margin-top: 10px;margin-left:-10px;" :src="require('../../public/photo/'+FileType+'.png')" width="100px" height="80px">
+            <img v-else style="margin-top: 10px;" :src="require('../../public/photo/'+FileType+'.png')" width="80px" height="80px">
+          </div>
+          <div class="share-name">{{FileName}}</div>
+          <div class="share-choice1">
+            选择有效期
+            <el-select v-model="value1"  placeholder="请选择">
+              <el-option
+                v-for="item in options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </div>
+          <div class="share-choice2">
+            <el-select v-model="value2"  placeholder="请选择">
+              <el-option
+                v-for="item in options1"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </div>
+
+          <div class="share-button"><button>创建分享</button></div>
+          
+
+
+
+        </div>
+      </el-dialog>
+
+
       <!-- 预览文件 -->
       <el-drawer
         size="100%"
@@ -106,8 +150,7 @@
             <video
               ref="myVideo"
               :src="src"
-              :controls="controls"
-              oncontextmenu="return false"
+              :controls="controls"xlayer
               controlslist="nodownload"
               class="video-boxs"
             ></video>
@@ -128,6 +171,19 @@
           </div>
         </div>
       </el-drawer>
+
+      <el-dialog
+        title="新建文件夹"
+        :visible.sync="dialogVisible"
+        width="400px">
+        <div class="NewFolder"><img  src="../../public/photo/folder.png" width="100px" height="80px"></div>
+        <div style="margin-top: 30px;"><el-input v-model="NewFolderName" placeholder="文件夹名称"></el-input></div>
+        <span slot="footer" class="dialog-footer">
+          <el-button type="primary" @click="addFolder()">确 定</el-button>
+        </span>
+      </el-dialog>
+    
+
     
       
       
@@ -137,11 +193,46 @@
 
 <script type="text/javascript">
 import download from "downloadjs";
-import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
+import {downloads,file,rename,getfile,recycler,movement,addfolder} from "../apis/index"
    export default {
     inject:['reload'],
    data() {
        return {
+        //新建文件夹层是否渲染变量
+          dialogVisible:false,
+          //新建文件夹名称
+          NewFolderName:null,
+        //是否显示文件
+        shuaxin:true,
+        //分享文件形式
+        value2:'0',
+        //分享文件形式选项
+        options1: [{
+          value: '0',
+          label: '创建公开链接，不需要密码即可访问分享的文件！'
+        }, {
+          value: '1',
+          label: '创建私密链接，需要输入密码才能访问分享文件！'
+        },],
+        //分享文件时效
+        value1:'1',
+        //分享文件时效选项
+        options: [{
+          value: '0',
+          label: '7天内有效'
+        }, {
+          value: '1',
+          label: '30天内有效'
+        }, {
+          value: '2',
+          label: '永久有效'
+        },],
+        //分享文件时选中文件的名字
+        FileName:"",
+        //分享文件时选中文件的类型
+        FileType:null,
+        //分享文件层是否渲染
+        sharetype:false,
         //总查询记录
         record:[],
         //保存文件的路径
@@ -218,7 +309,7 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
         this.isshow = true
         this.list = []
         let data = {
-            id:'1'
+            id:sessionStorage.getItem('userid')
           }
           file(data).then((res=>{
             if(res.status==200){
@@ -238,13 +329,150 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
     }
    },
    methods:{
+    //右键菜单
+       onContextmenu(event) {
+      event.preventDefault()
+      if(this.boxindex){
+        let fileindex  =this.boxindex
+        this.$contextmenu({
+        items: [
+          {
+            icon: "el-icon-edit",
+            label: "重命名",
+            onClick: () => {
+              this.Rename(this.list[fileindex].fileName,this.list[fileindex].belongId,this.list[fileindex].fileType,this.list[fileindex].fileId,this.list[fileindex].folderBelongId)
+            }
+          },
+          {
+            icon: "el-icon-bottom",
+            label: "下载",
+            onClick: () => {
+              this.down(this.list[fileindex].filePath,this.list[fileindex].fileName,this.list[fileindex].fileType)
+            }
+          },
+           {
+            icon: "el-icon-document-copy",
+            label: "移动",
+            onClick: () => {
+              this.Move(this.list[fileindex].fileId,this.list[fileindex].belongId,this.list[fileindex].folderBelongId,this.list[fileindex].fileType)
+            }
+          },
+          {
+            icon: "el-icon-folder-opened",
+            label: "移动至我的隐私",
+            onClick: () => {
+              console.log(123);
+            }
+          },
+           {
+            icon: "el-icon-s-promotion",
+            label: "分享",
+            onClick: () => {
+              console.log(123);
+            }
+          },
+           {
+            icon: "el-icon-delete",
+            label: "移至回收站",
+            onClick: () => {
+              this.Recycler(this.list[fileindex].fileId,this.list[fileindex].fileType,this.list[fileindex].belongId)
+            }
+          },
+          
+        ],
+        event,
+        customClass: "class-a",
+        zIndex: 3,
+        minWidth: 100
+      });
+      }else{
+        this.$contextmenu({
+        items: [
+          {
+            icon: "el-icon-refresh",
+            label: "刷新",
+            onClick: () => {
+              this.shuaxin = false
+              this.getuserfile()
+              let timer = setTimeout(() => {
+              this.shuaxin = true
+              }, 200)
+            }
+          },
+          {
+            icon: "el-icon-top",
+            label: "上传文件",
+            onClick: () => {
+              this.setSessionItem('shang','true')
+            }
+          },
+          {
+            icon: "el-icon-folder-add",
+            label: "新建文件夹",
+            onClick: () => {
+              this.dialogVisible = true
+            }
+          },
+        ],
+        event,
+        customClass: "class-a",
+        zIndex: 3,
+        minWidth: 100
+      });
+      }
+      
+      return false;
+    },
+    //新建文件夹
+    addFolder(){
+      if(!this.NewFolderName){
+        this.$message.error('文件名不能为空！');
+        return
+      }
+      let data = {
+        id:sessionStorage.getItem('userid'),
+        belongId:null,
+        fileName:this.NewFolderName
+      }
+      if(sessionStorage.getItem('paths')){
+            data.belongId=sessionStorage.getItem('paths')
+      }else{
+            data.belongId=""
+      }
+      addfolder(data).then(res=>{
+        console.log(res)
+        if(res.data.code==200){
+          this.dialogVisible = false
+          window.location.reload()
+          this.setSessionItem('success','新建文件夹成功！')
+          // this.$message.success('新建文件夹成功！')
+
+          this.NewFolderName = null
+        }else{
+           this.$message.error(res.data.msg);
+        }
+        
+      })
+    },
+
+    //分享文件层渲染
+    Share(type,name){
+      this.sharetype = true
+      this.FileType = type
+      this.FileName = name
+    },
+
     //确定移动文件
     Movement(){
       let data = {
-        userId:'1',
+        userId:sessionStorage.getItem('userid'),
         fileId:this.userFileId,
-        belongId:this.preservation
+        newBelongId:this.preservation,
+        oldBelongId:this.belongId,
+        folderBelongId:this.folderBelongId,
+        type:this.fileTypes,
       }
+      console.log(data);
       movement(data).then((res=>{
         this.getuserfile()
         this.movetype = false
@@ -256,9 +484,28 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
     },
     //保存列表后退
     belongback(){
-      this.record.splice(this.record.length-1,1)
+      if(this.record.length==2){
+        this.record.splice(this.record.length-1,1)
+        let data = {
+          id:sessionStorage.getItem('userid')
+        }
+        file(data).then((res=>{
+        this.movelist=[]
+        console.log(res);
+        for(let a = 0;a<res.data.data.length;a++){
+          if(res.data.data[a].belongId==""&&res.data.data[a].fileId!=this.userFileId){
+            this.movelist.push(res.data.data[a])
+          }
+        }
+        if(this.movelist){
+          this.preservation = this.movelist[0].belongId
+        }
+        
+      }))
+      }else{
+        this.record.splice(this.record.length-1,1)
       let data = {
-        userId:'1',
+        userId:sessionStorage.getItem('userid'),
         belong:this.record[this.record.length-1].belong,
       }
       getfile(data).then((res=>{
@@ -266,13 +513,16 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
         this.preservation = this.movelist[0].belongId
       }))
       
+      }
+      
     },
     //加入回收站
-    Recycler(id,type){
+    Recycler(id,type,belongid){
       let data = {
-        userId:'1',
+        userId:sessionStorage.getItem('userid'),
         fileId:id,
-        type:type
+        type:type,
+        belongId:belongid
       }
       recycler(data).then((res=>{
         this.getuserfile()
@@ -285,14 +535,20 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
     //刷新文件保存列表
     Refresh(belong,name){
       let data = {
-        userId:'1',
+        userId:sessionStorage.getItem('userid'),
         belong:belong,
       }
       this.record.push({belong:belong,name:name})
       getfile(data).then((res=>{
         console.log(res)
         if(res.data.code==200){
-          this.movelist = res.data.data
+          this.movelist= []
+          res.data.data.forEach(item => {
+            if(item.fileId!=this.userFileId){
+              this.movelist.push(item)
+            }
+          });
+
           this.preservation = this.movelist[0].belongId
         }else if(res.data.code==201){
           this.movelist = res.data.data
@@ -302,31 +558,41 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
       }))
     },
     //文件移动
-    Move(id){
+    Move(id,belongId,folderBelongId,typee){
+      this.fileTypes = typee
+      this.folderBelongId = folderBelongId
+      this.belongId= belongId
+      this.movelist = []
       this.userFileId = id
       this.record = []
       let data = {
-        userId:'1',
-        belong:'1@-.@',
+        id:sessionStorage.getItem('userid'),
       }
-      this.record.push({belong:'1@-.@',name:"全部文件"})
-      getfile(data).then((res=>{
+      this.record.push({belong:sessionStorage.getItem('userid')+'@-.@',name:"全部文件"})
+      console.log(data);
+      file(data).then((res=>{
         console.log(res)
-        this.movelist = res.data.data
-        this.preservation = this.movelist[0].belongId
+        for(let a = 0;a<res.data.data.length;a++){
+          if(res.data.data[a].belongId==""&&res.data.data[a].fileId!=this.userFileId){
+            this.movelist.push(res.data.data[a])
+          }
+        }
+        if(this.movelist){
+          this.preservation = this.movelist[0].belongId
+        }
+        
         this.movetype = true
       }))
   
     },
     //文件预览
-    prev(name,belong,type){
+    prev(filePath,type){
       this.filestatus = type
-      let Name = belong+name+''
-      Name = Name.replace(/\\/g, '@-.@')
       let data = {
-        fileName:Name,
-        id:"1"
+        filePath:filePath,
+        userId:sessionStorage.getItem('userid')
       }
+      console.log(data)
       downloads(data).then((res=>{
         if(res.data.code==200){
           this.src = res.data.data
@@ -338,12 +604,22 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
     //获取用户文件信息
     getuserfile(){
       let data = {
-        id:'1'
+        id:sessionStorage.getItem('userid')
       }
       file(data).then((res=>{
-        if(res.status==200){
-          this.list = res.data.data  
-          sessionStorage.setItem('outsideBelongId',this.list[0].belongId)
+        if(res.data.code==200){
+          if(res.data.data){
+            this.setSessionItem('listLength','false')
+          }else{
+            this.setSessionItem('listLength','true')
+          }
+          this.list = res.data.data
+          if(this.list){
+            sessionStorage.setItem('outsideBelongId',this.list[0].belongId)
+          }
+          
+        }else{
+          this.setSessionItem('listLength','true')
         }
       }))
     },
@@ -353,9 +629,12 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
     //更新文件列表长度
     listnum(){
       this.checked=[]
-      for(var i=0;i<this.list;i++){
+      if(this.list){
+        for(var i=0;i<this.list;i++){
         this.checked.push(false)
+        }
       }
+      
     },
     //更新已选中文件内容
     StateChange(){
@@ -376,7 +655,7 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
       //   id:"1",
       // }
       // download(data).then((res=>{
-      //   // console.log(res)
+      //   // console.log(res)xia
       //   // var fileName = "xiao.mp4"
       //   // let blob = new Blob([res.request.response], {type:"application/octet-stream"});
       //   // var downloadElement = document.createElement("a");
@@ -391,11 +670,13 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
 
       //url地址
       let data = {
-        fileName:filepath,
-        id:"1"
+        filePath:filepath,
+        userId:sessionStorage.getItem('userid')
       }
+      console.log(data);
       downloads(data).then(( async res=>{
-        if (res.status==200) {
+        console.log(res);
+        if (res.data.code==200) {
           console.log(type)
           if(type=='mp4'||type=='jpg'||type=='png'||type=='txt'){
             const h = this.$createElement;
@@ -431,23 +712,27 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
           }
 
             
+          }else{
+            this.$message.error(res.data.msg);
           }
       }))
     },
     //修改文件名层弹出
-    Rename(name,belong,type,id){
+    Rename(name,belong,type,id,form){
       this.NewFolderNames = name
       this.filetype = type
       this.dialogVisibles = true
       let data = {
-        id:'1',
-        belong:belong,
+        id:sessionStorage.getItem('userid'),
+        belongId:belong,
         newName:this.NewFolderNames,
         oldName:name,
         type:type,
-        fileId:id
+        fileId:id,
+        folderBelongId:form
       }
       this.dat = data
+      console.log(this.dat);
     },
     //文件重命名
     enames(){
@@ -457,11 +742,14 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
         }
       let data = this.dat
       data.newName = this.NewFolderNames
+      console.log(data)
       rename(data).then((res=>{
+        console.log(res)
         if(res.data.code==200){
-          this.dialogVisible = false
+          this.dialogVisibles = false
           window.location.reload();
           this.$message.success('文件重命名成功！');
+          this.getuserfile()
 
         }else{
            this.$message.error(res.data.msg);
@@ -469,21 +757,20 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
       }))
     },
     //打开文件夹
-    open(name,belong){
+    open(belong){
       this.$router.push({
         path: '/folder',
         query: {
-          name: name,
           belong:belong,
         }
       })
     },
     //点击文件
-    opens(type,name,belong){
+    opens(filePath,type,name,belong){
       if(type=="folder"){
-        this.open(name,belong)
+        this.open(belong)
       }else{
-        this.prev(name,belong,type)
+        this.prev(filePath,type)
       }
     },
     beforeDestroy() {
@@ -497,11 +784,62 @@ import {downloads,file,rename,getfile,recycler,movement} from "../apis/index"
 </script>
 
 <style scoped>
+
 *{
     margin:0;
     padding:0;
   }
 
+
+
+.share-button{
+  width: 150px;
+  height: 50px;
+  float: right;
+  margin-top: 20px;
+}
+.share-choice2{
+    margin-top: 10px;    
+  }
+.share-choice2 >>> .el-input__inner{
+  background: rgb(239, 239, 239);
+  border-radius: 10px;
+  width: 460px;
+  border: none;
+}
+
+.share-choice1 >>> .el-input__inner{
+  border-radius: 10px;
+  width: 120px;
+  border: none;
+}
+.share-choice1 >>> .el-input__inner:hover{
+  background: rgb(239, 239, 239);
+}
+.share-choice1{
+  margin-top: 40px;
+  font-size: 16px;
+}
+.share-name{
+  margin-top: 20px;
+  font-size: 20px;
+  text-align: center;
+}
+.share-img{
+  margin-top: 50px;
+  margin-left: 190px;
+  width: 100px;
+  height: 80px;
+}
+.share-text{
+  font-weight: 700;
+  font-size: 20px;
+  margin-top: -40px;
+}
+
+.shares>>>.el-dialog__body{
+  height: 400px;
+}
 
 button {
   margin-top: 30px;
@@ -719,14 +1057,17 @@ body {
 .xlayer{
   margin-top: 110px;
   position: absolute;
-  width: 96%-240px;
+  width: 87%;
+  min-height: 100vh;
   margin-left: 1%;
 }
 .xlayer2{
+
+  min-height: 100vh;
   margin-top: 110px;
   position: absolute;
-  width: 96%;
-  margin-left: 3%;
+  width: 98%;
+  margin-left: 1%;
 }
 .Alayer{
   width: 120px;

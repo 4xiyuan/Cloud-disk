@@ -34,7 +34,7 @@ export function download(param) {
 //下载(url地址)
 export function downloads(param) {
     return httpRequest({
-		url: '/api/downloads/'+param.id+'/'+param.fileName,
+		url: '/api/downloads/'+param.userId+'/'+param.filePath,
 		method: 'get',
 	})
 }

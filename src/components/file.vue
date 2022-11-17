@@ -16,12 +16,12 @@
       :close-on-press-escape="false"
       :close-on-click-modal="false"
       :show-close="false"
-      width="30%"
+      width="23%"
       class="Safebox">
-      <el-input v-model="userSafebBoxpassword" placeholder="请输入密码"></el-input>
+      <el-input v-model="userSafebBoxpassword" placeholder="请输入密码" type="password"></el-input>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+        <el-button @click="dialogVisible = false">取消</el-button>&nbsp;
+        <button   @click="dialogVisible = false">确 定</button>
       </span>
     </el-dialog>
   </div>
@@ -63,6 +63,39 @@
   position: absolute;
   margin-top: 90px;
   
+}
+
+button {
+  padding: 1.3em 3em;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  font-weight: 500;
+  color: #000;
+  background-color: #fff;
+  border: none;
+  border-radius: 45px;
+  box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease 0s;
+  cursor: pointer;
+  outline: none;
+}
+
+button:hover {
+  background-color: #23c483;
+  box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
+  color: #fff;
+  transform: translateY(-7px);
+}
+
+button:active {
+  transform: translateY(-1px);
+}
+.Safebox{
+  margin-top: 10%;
+}
+.Safebox>>>.el-dialog{
+  border-radius: 15px;
 }
 .Safebox>>>.el-dialog__body{
   height: 50px;

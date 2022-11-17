@@ -1,6 +1,6 @@
 <template>
   <div  :class="sidebartypes ? 'xlayer' :'xlayer2'">
-    <div  class="allbox"><el-checkbox @change="StateChange()" v-model="checkeds">全选</el-checkbox></div>
+    <div v-if="list!=[]&&list!=null" class="allbox"><el-checkbox @change="StateChange()" v-model="checkeds">全选</el-checkbox></div>
     <li style="float: left;list-style-type: none;" v-for="item,index in list" :key="index">
         <div  class="Alayer " >
           <div @mouseover="boxindex=index" @mouseleave="boxindex=null"  :class="['Alayer-x',{'is-choice':checked[index]} ]">
@@ -84,7 +84,7 @@ import {file,getrecycler,reduction} from "../apis/index"
     //还原文件
     Reduction(fileId){
       let data = {
-        userId:'1',
+        userId:sessionStorage.getItem('userid'),
         fileId:fileId
       }
       console.log(data)
@@ -99,10 +99,13 @@ import {file,getrecycler,reduction} from "../apis/index"
     //获取用户文件信息
     getuserfile(){
       let data = {
-        userId:'1'
+        userId:sessionStorage.getItem('userid')
       }
       getrecycler(data).then((res=>{
         if(res.status==200){
+          if(res.data.data){
+            this.setSessionItem('listLength','false')
+          }
           this.list = res.data.data  
         }
       }))
