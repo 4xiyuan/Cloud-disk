@@ -61,10 +61,10 @@
                 <i class="el-icon-more"></i>
               </span>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item >个人中心</el-dropdown-item>
+                <!-- <el-dropdown-item >个人中心</el-dropdown-item>
                 <el-dropdown-item >我的分享</el-dropdown-item>
                 <el-dropdown-item >待定</el-dropdown-item>
-                <el-dropdown-item >待定</el-dropdown-item>
+                <el-dropdown-item >待定</el-dropdown-item> -->
                 <el-dropdown-item @click.native="cancellation()">退出登入</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
@@ -73,13 +73,13 @@
        </div>
 
        <div class="card" >
-        <li style="list-style-type: none;float: left;" v-for="index in 5" :key="index">
+        <li style="list-style-type: none;float: left;" v-for="index in 4" :key="index">
           <div v-if="index!=sidebarnum" @mouseover="ind=index" @mouseleave="ind=null" @click="Sidebars(index)" :class="ind==index ? 'cards2':'cards'">
-            <img class="che"  :src="require('../public/photo/che'+(index-1)+'.png')" >
+            <img class="che"  :src="require('../public/photo/che'+(index)+'.png')" >
             <span class="textr">{{title[index-1]}}</span>
           </div>
           <div v-else class="cards3">
-              <img class="che"  :src="require('../public/photo/che'+(index-1)+'.png')" >
+              <img class="che"  :src="require('../public/photo/che'+(index)+'.png')" >
               <span class="textr">{{title[index-1]}}</span>
           </div>
         </li>
@@ -87,7 +87,7 @@
 
        <div class="foots">
         <span class="foots-text">160 GB / 240 GB</span>
-        <span class="foots-text2">管理容量</span>
+        <span class="foots-text2">云盘容量</span>
         <el-progress style="margin-top: 10px;"  :percentage="160/240*100" :show-text="false"></el-progress>
        </div>
 
@@ -179,8 +179,8 @@ import {endUpload,addfolder} from '../src/apis/index'
           usert:sessionStorage.getItem('users'),
           ind:100,
           sidebarnum:1,
-          routers:['/home','/photo','/video','/file','/recycle'],
-          title:['全部文件','照片','音视频','我的隐私','回收站'],
+          routers:['/home','/share','/file','/recycle'],
+          title:['全部文件','我的分享','我的隐私','回收站'],
           //搜索框内容
           searchText:null,
           //新建文件夹层是否渲染变量
@@ -227,7 +227,25 @@ import {endUpload,addfolder} from '../src/apis/index'
         sessionStorage.setItem('zhutitle',this.$route.meta.title)
         this.routeTitle = sessionStorage.getItem('zhutitle')
       }
-      
+      //路由跳转侧边栏跟着变动
+      //  console.log(226)
+      // if(this.$route.path=='/home'){
+      //   sessionStorage.setItem('sidebar',''+1)
+      //   this.sidebarnum = 1
+      // }else if(this.$route.path=='/folder'){
+      //   sessionStorage.setItem('sidebar',''+1)
+      //   this.sidebarnum = 1
+      // }else if(this.$route.path=='/share'){
+      //   sessionStorage.setItem('sidebar',''+2)
+      //   this.sidebarnum = 2
+      // }else if(this.$route.path=='/file'){
+      //   sessionStorage.setItem('sidebar',''+3)
+      //   this.sidebarnum = 3
+      // }else if(this.$route.path=='/recycle'){
+      //   sessionStorage.setItem('sidebar',''+4)
+      //   this.sidebarnum = 4
+      // }
+
       //路由跳转时重置滚动条顶部
       document.body.scrollTop = 0
       document.documentElement.scrollTop = 0
@@ -390,9 +408,6 @@ import {endUpload,addfolder} from '../src/apis/index'
       this.sidebarnum = index
       this.$router.push(this.routers[index-1])
     },
-    gto(name){
-      this.$router.push("/"+name)
-    }
    }
    }
 </script>
@@ -441,15 +456,14 @@ cursor: pointer;
 
 
 .nulls{
+  
+  margin-left: 40%;
+  margin-top: 15%;
   z-index: 2;
   position: absolute;
-  width: 100%;
-  height: 100vh;
 }
 .card-box {
   border-radius: 25px;
-  margin-left: 45%;
-  margin-top: 18%;
  cursor: pointer;
  width: 300px;
  height: 200px;

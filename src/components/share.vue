@@ -53,7 +53,7 @@
           //悬浮于哪一个文件下标
           boxindex:null,
           //文件列表长度
-          list:66,
+          list:6,
           //全选
           checkeds:false,
        }
@@ -81,9 +81,6 @@
     }
    },
    methods:{
-    gto(){
-      this.$router.push('/folder')
-    },
     //更新文件列表长度
     listnum(){
       this.checked=[]

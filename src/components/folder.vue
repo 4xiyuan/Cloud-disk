@@ -2,7 +2,7 @@
   <div @contextmenu.prevent="onContextmenu" :class="sidebartypes ? 'xlayer' :'xlayer2'">
     <div v-if="list.length>0"  class="allbox"><el-checkbox @change="StateChange()" v-model="checkeds">全选</el-checkbox></div>
     <li style="float: left;list-style-type: none;" v-for="item,index in list" :key="index">
-        <div  class="Alayer " >
+        <div v-if="isshow||item.belongId==currentPath" class="Alayer " >
           <div @mouseover="boxindex=index" @mouseleave="boxindex=null" @click="opens(item.filePath,item.fileType,item.fileName,item.cbelong)"   :class="['Alayer-x',{'is-choice':checked[index]} ]">
             <div @click.stop v-show="boxindex==index||checked[index]"><el-checkbox  v-model="checked[index]"></el-checkbox></div>
             <div v-show="boxindex==index&&!checked[index]" @click.stop class="choicebox">
@@ -18,7 +18,7 @@
                     <el-dropdown-item  @click.native="Move(item.fileId,item.belongId,item.folderBelongId,item.fileType)">移动</el-dropdown-item>
                     <el-dropdown-item >分享</el-dropdown-item>
                     <el-dropdown-item >移动至我的隐私</el-dropdown-item>
-                    <el-dropdown-item @click.native="Recycler(item.fileId,item.fileType,item.belongId)"><span style="color: rgb(255, 0, 0);">移至回收站</span></el-dropdown-item>
+                    <el-dropdown-item @click.native="Recycler(item.fileId,item.fileType,item.cbelong)"><span style="color: rgb(255, 0, 0);">移至回收站</span></el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
             </div>
@@ -36,14 +36,14 @@
         </div>
     </li>
 
-    <div v-show="SelectedFile!=null" :class="sidebartypes ? 'multi-select' :'multi-select2'">
-      <div class="selectbox" title="下载"><img style="margin-top: 5px;" src="../../public/photo/download.png" width="20px" height="20px"></div>
-      <div class="selectbox" title="移动至"><img style="margin-top: 5px;" src="../../public/photo/mobile.png" width="20px" height="20px"></div>
+    <div v-show="SelectedFile.length>0" :class="sidebartypes ? 'multi-select' :'multi-select2'">
+      <div @click="downs()" class="selectbox" title="下载"><img style="margin-top: 5px;" src="../../public/photo/download.png" width="20px" height="20px"></div>
+      <div @click="Moves()" class="selectbox" title="移动至"><img style="margin-top: 5px;" src="../../public/photo/mobile.png" width="20px" height="20px"></div>
       <div class="selectbox" title="移动至我的隐私"><img style="margin-top: 5px;" src="../../public/photo/suo.png" width="20px" height="20px"></div>
-      <div class="selectbox" title="放入回收站"><img style="margin-top: 5px;" src="../../public/photo/delete.png" width="20px" height="20px"></div>
-      <div class="selectbox" title="取消多选"><img style="margin-top: 5px;" src="../../public/photo/cancel.png" width="20px" height="20px"></div>
+      <div @click="Recyclers()" class="selectbox" title="放入回收站"><img style="margin-top: 5px;" src="../../public/photo/delete.png" width="20px" height="20px"></div>
+      <div @click="checkeds = false;StateChange()" class="selectbox" title="取消多选"><img  style="margin-top: 5px;" src="../../public/photo/cancel.png" width="20px" height="20px"></div>
     </div>
-    <!-- <a v-show="false" ref="downs" href="xxx.txt" download="xxx.txt"></a> -->
+    <a v-show="false" ref="downs" href="xxx.txt" download="xxx.txt"></a>
 
     <el-dialog
         v-if="filetype"
@@ -129,13 +129,15 @@
 
 <script type="text/javascript">
 import download from "downloadjs";
-import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
+import {downloads,file,rename,movement,recycler,getfile,Downs} from "../apis/index"
    export default {
     inject:['reload'],
    data() {
        return {
+        //当前目录路径
+        currentPath:null,
         //移动的文件id
-        userFileId:null,
+        userFileId:[],
         //文件移动选择框的当前位置
         CurrentLocation:"全部文件",
         //移动至文件列表
@@ -161,6 +163,8 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
         },
         //搜索框内容
         Searchbox:null,
+        //搜索框是否有内容
+        isshow:false,
         //修改文件名时文件的类型
           filetype:null,
         //侧边栏状态
@@ -168,7 +172,7 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
           //文件选择状态
           checked:[],
           //已选中文件
-          SelectedFile:null,
+          SelectedFile:[],
           //悬浮于哪一个文件下标
           boxindex:null,
           //文件新名字
@@ -179,6 +183,8 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
           checkeds:false,
           //文件重命名层
           dialogVisibles:false,
+          //是否为批量移动文件
+          ismoves:false,
        }
    },
    created(){
@@ -200,127 +206,318 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
    },
    watch:{
     'checked'(){
-      this.SelectedFile=null
+      console.log(17);
+      this.SelectedFile=[]
+      this.checkeds =true
       for(var i =0;i<this.checked.length;i++){
         if(this.checked[i]==true){
-          this.SelectedFile=1
+          this.SelectedFile.push(
+                                  {
+                                    'path':this.list[i].filePath,
+                                    'name':this.list[i].fileName,
+                                    'type':this.list[i].fileType,
+                                    'cBelongId':this.list[i].cbelong,
+                                    'fileId':this.list[i].fileId,
+                                    'belongId':this.list[i].belongId,
+                                    'folderBelongId':this.list[i].folderBelongId,
+                                    }
+                                  )
+        }else{
+          this.checkeds=false
         }
       }
     },
     'Searchbox'(){
-      if(this.Searchbox!=null&&this.Searchbox!=""){
-        
+      if(this.Searchbox!=null&&this.Searchbox!=""&&this.Searchbox!='null'){
+        this.isshow = true
+        this.list = []
+        let data = {
+            id:sessionStorage.getItem('userid')
+          }
+          file(data).then((res=>{
+            if(res.status==200){
+              for(let i =0;i<res.data.data.length;i++){
+                if(res.data.data[i].fileName.indexOf(this.Searchbox)!=-1&&res.data.data[i].belongId==this.currentPath){
+                  this.list.push(res.data.data[i])
+                }else{
+                }
+              }
+            }
+          }))
       }else{
-        
+        let belong = this.$route.query.belong
+        this.getuserfile(belong)
+        this.isshow = false
       }
     }
    },
    methods:{
+    //批量放入回收站
+    Recyclers(){
+      let data = {
+        recyclerList:[],
+      }
+      for(let a = 0;a<this.SelectedFile.length;a++){
+        let dat = {
+          userId:sessionStorage.getItem('userid'),
+          fileId:this.SelectedFile[a].fileId,
+          type:this.SelectedFile[a].type,
+          cbelongId:this.SelectedFile[a].cBelongId
+        }
+        data.recyclerList.push(dat)
+      }
+      recycler(data).then((res=>{
+        let belong = this.$route.query.belong
+        this.getuserfile(belong)
+        this.$message({
+          message: '文件已加入回收站！',
+          type: 'success'
+        });
+      }))
+
+    },
+     //批量下载
+    downs(){
+      let data = {
+        id:sessionStorage.getItem('userid'),
+        pathList:[]
+      }
+      for(let i = 0;i<this.SelectedFile.length;i++){
+        if(this.SelectedFile[i].path!=null){
+          let linshi = []
+          linshi.push(this.SelectedFile[i].path)
+          linshi.push(this.SelectedFile[i].type)
+          linshi.push(this.SelectedFile[i].name)
+          data.pathList.push(linshi)
+        }
+      }
+      console.log(data);
+      Downs(data).then((res=>{
+        if(res.data.code==200){
+          console.log(res);
+          for(let a = 0;a<res.data.data.length;a++){
+                  if(res.data.data[a].filetype=='mp4'||res.data.data[a].filetype=='jpg'||res.data.data[a].filetype=='png'||res.data.data[a].filetype=='txt'){
+                  const h = this.$createElement;
+                              let notify= this.$notify({
+                                title:'文件解析中',
+                                dangerouslyUseHTMLString: true,
+                                message:h('div',[h('i',{class:"el-icon-loading"},),h( 'div','文件越大,解析越耗时,请耐心等待！'),]),
+                                showClose: false,
+                                duration:0,
+                              });
+
+                              fetch(res.data.data[a].url).then(res => res.blob()).then(blob => { // 将链接地址字符内容转变成blob地址
+                                      const link = document.createElement('a');
+                                      link.href = URL.createObjectURL(blob);
+                                      link.download = res.data.data[a].fileName;
+                                      // link.target = '_blank';
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      notify.close()
+                                      link.remove();
+                                  }).catch(() => {
+                                      notify.close()
+                                      this.$message.error('服务器出错,请稍后重试！');
+                                      
+                                  });
+                }else{
+                  const link = document.createElement('a')
+                  link.href = res.data.data[a].url
+                  // link.target = '_blank'
+                  link.setAttribute('download', res.data.data[a].fileName) 
+                  document.body.appendChild(link)
+                  link.click()
+                }
+          }
+        }
+      }))
+    },
      //右键菜单
         onContextmenu(event) {
-          event.preventDefault()
-          if(this.boxindex){
-            this.$contextmenu({
+      event.preventDefault()
+      if(this.boxindex!=null){
+        let fileindex  =this.boxindex
+        if(this.list[fileindex].fileType!='folder'){
+          this.$contextmenu({
             items: [
-              {
-                icon: "el-icon-edit",
-                label: "重命名",
-                onClick: () => {
-                  console.log(123)
-                }
-              },
-              {
-                icon: "el-icon-bottom",
-                label: "下载",
-                onClick: () => {
-                  console.log(123);
-                }
-              },
-              {
-                icon: "el-icon-document-copy",
-                label: "移动",
-                onClick: () => {
-                  console.log(123);
-                }
-              },
-              {
-                icon: "el-icon-folder-opened",
-                label: "移动至我的隐私",
-                onClick: () => {
-                  console.log(123);
-                }
-              },
-              {
-                icon: "el-icon-s-promotion",
-                label: "分享",
-                onClick: () => {
-                  console.log(123);
-                }
-              },
-              {
-                icon: "el-icon-delete",
-                label: "移至回收站",
-                onClick: () => {
-                  console.log(123);
-                }
-              },
-              
-            ],
-            event,
-            customClass: "class-a",
-            zIndex: 3,
-            minWidth: 100
-          });
-          }else{
-            this.$contextmenu({
-            items: [
-              {
-                icon: "el-icon-refresh",
-                label: "刷新",
-                onClick: () => {
-                  this.shuaxin = false
-                  let belong = this.$route.query.belong
-                  this.getuserfile(belong)
-                  let timer = setTimeout(() => {
-                  this.shuaxin = true
-                  }, 200)
-                }
-              },
-              {
-                icon: "el-icon-top",
-                label: "上传文件",
-                onClick: () => {
-                  this.setSessionItem('shang','true')
-                }
-              },
-              {
-                icon: "el-icon-folder-add",
-                label: "新建文件夹",
-                onClick: () => {
-                  this.setSessionItem('xinjian','true')
-                }
-              },
-            ],
-            event,
-            customClass: "class-a",
-            zIndex: 3,
-            minWidth: 100
-          });
-          }
+          {
+            icon: "el-icon-edit",
+            label: "重命名",
+            onClick: () => {
+              this.Rename(this.list[fileindex].fileName,this.list[fileindex].belongId,this.list[fileindex].fileType,this.list[fileindex].fileId,this.list[fileindex].folderBelongId)
+            }
+          },
+          {
+            icon: "el-icon-bottom",
+            label: "下载",
+            onClick: () => {
+              this.down(this.list[fileindex].filePath,this.list[fileindex].fileName,this.list[fileindex].fileType)
+            }
+          },
+           {
+            icon: "el-icon-document-copy",
+            label: "移动",
+            onClick: () => {
+              this.Move(this.list[fileindex].fileId,this.list[fileindex].belongId,this.list[fileindex].folderBelongId,this.list[fileindex].fileType)
+            }
+          },
+          {
+            icon: "el-icon-folder-opened",
+            label: "移动至我的隐私",
+            onClick: () => {
+              console.log(123);
+            }
+          },
+           {
+            icon: "el-icon-s-promotion",
+            label: "分享",
+            onClick: () => {
+              this.Share(this.list[fileindex].fileType,this.list[fileindex].fileName)
+            }
+          },
+           {
+            icon: "el-icon-delete",
+            label: "移至回收站",
+            onClick: () => {
+              this.Recycler(this.list[fileindex].fileId,this.list[fileindex].fileType,this.list[fileindex].cbelong)
+            }
+          },
           
-          return false;
+        ],
+        event,
+        customClass: "class-a",
+        zIndex: 3,
+        minWidth: 100
+      })
+        }else{
+        this.$contextmenu({
+        items: [
+          {
+            icon: "el-icon-edit",
+            label: "重命名",
+            onClick: () => {
+              this.Rename(this.list[fileindex].fileName,this.list[fileindex].belongId,this.list[fileindex].fileType,this.list[fileindex].fileId,this.list[fileindex].folderBelongId)
+            }
+          },
+           {
+            icon: "el-icon-document-copy",
+            label: "移动",
+            onClick: () => {
+              this.Move(this.list[fileindex].fileId,this.list[fileindex].belongId,this.list[fileindex].folderBelongId,this.list[fileindex].fileType)
+            }
+          },
+          {
+            icon: "el-icon-folder-opened",
+            label: "移动至我的隐私",
+            onClick: () => {
+              console.log(123);
+            }
+          },
+           {
+            icon: "el-icon-s-promotion",
+            label: "分享",
+            onClick: () => {
+              this.Share(this.list[fileindex].fileType,this.list[fileindex].fileName)
+            }
+          },
+           {
+            icon: "el-icon-delete",
+            label: "移至回收站",
+            onClick: () => {
+              this.Recycler(this.list[fileindex].fileId,this.list[fileindex].fileType,this.list[fileindex].cbelong)
+            }
+          },
+          
+        ],
+        event,
+        customClass: "class-a",
+        zIndex: 3,
+        minWidth: 100
+      })
+      }
+      }else{
+        this.$contextmenu({
+        items: [
+          {
+            icon: "el-icon-refresh",
+            label: "刷新",
+            onClick: () => {
+              this.shuaxin = false
+               let belong = this.$route.query.belong
+              this.getuserfile(belong)
+              let timer = setTimeout(() => {
+              this.shuaxin = true
+              }, 200)
+            }
+          },
+          {
+            icon: "el-icon-top",
+            label: "上传文件",
+            onClick: () => {
+              this.setSessionItem('shang','true')
+            }
+          },
+          {
+            icon: "el-icon-folder-add",
+            label: "新建文件夹",
+            onClick: () => {
+              this.setSessionItem('xinjian','true')
+            }
+          },
+        ],
+        event,
+        customClass: "class-a",
+        zIndex: 3,
+        minWidth: 100
+      });
+      }
+      
+      return false;
     },
     //确定移动文件
     Movement(){
-      let data = {
+      if(this.ismoves){
+        let data = {
+        movementList:[
+
+        ],
+        newBelongId:this.preservation
+      }
+      for(let o = 0;o<this.SelectedFile.length;o++){
+         let dat = {
         userId:sessionStorage.getItem('userid'),
-        fileId:this.userFileId,
-        newBelongId:this.preservation,
+        fileId:this.SelectedFile[o].fileId,
+        oldBelongId:this.SelectedFile[o].belongId,
+        folderBelongId:this.SelectedFile[o].folderBelongId,
+        type:this.SelectedFile[o].type,
+      }
+      data.movementList.push(dat)
+      }
+      movement(data).then((res=>{
+        this.ismoves = false
+        let belong = this.$route.query.belong
+        this.getuserfile(belong)
+        this.movetype = false
+        this.$message({
+          message: '文件移动完成！',
+          type: 'success'
+        });
+      }))
+      }else{
+        let data = {
+        movementList:[
+
+        ],
+        newBelongId:this.preservation
+      }
+      let dat = {
+        userId:sessionStorage.getItem('userid'),
+        fileId:this.userFileId[0],
         oldBelongId:this.belongId,
         folderBelongId:this.folderBelongId,
-         type:this.fileTypes,
+        type:this.fileTypes,
       }
-      console.log(data);
+      data.movementList.push(dat)
       movement(data).then((res=>{
         let belong = this.$route.query.belong
         this.getuserfile(belong)
@@ -330,10 +527,11 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
           type: 'success'
         });
       }))
+      }
+      
     },
     //保存列表后退
     belongback(){
-      console.log(this.record.length==2);
       if(this.record.length==2){
         this.record.splice(this.record.length-1,1)
         let data = {
@@ -341,8 +539,18 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
         }
         file(data).then((res=>{
         this.movelist=[]
+        console.log(res);
         for(let a = 0;a<res.data.data.length;a++){
-          if(res.data.data[a].belongId==""&&res.data.data[a].fileId!=this.userFileId){
+          let nums = 0
+          for(let b=0;b<this.userFileId.length;b++){
+            console.log();
+            if(res.data.data[a].belongId==""&&res.data.data[a].fileId!=this.userFileId[b]){
+             
+            }else{
+              nums = nums +1
+            }
+          }
+          if(nums==0){
             this.movelist.push(res.data.data[a])
           }
         }
@@ -358,7 +566,21 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
         belong:this.record[this.record.length-1].belong,
       }
       getfile(data).then((res=>{
-        this.movelist = res.data.data
+        this.movelist = []
+        for(let a = 0;a<res.data.data.length;a++){
+          let nums = 0
+          for(let b=0;b<this.userFileId.length;b++){
+            if(res.data.data[a].fileId!=this.userFileId[b]){
+             
+            }else{
+              nums = nums +1
+            }
+          }
+          if(nums==0){
+            this.movelist.push(res.data.data[a])
+          }
+          
+        }
         this.preservation = this.movelist[0].belongId
       }))
       
@@ -366,17 +588,20 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
       
     },
     //加入回收站
-    Recycler(id,type,belongid){
-      let data = {
+    Recycler(id,type,cbelong){
+       let data = {
+        recyclerList:[],
+      }
+      let dat = {
         userId:sessionStorage.getItem('userid'),
         fileId:id,
         type:type,
-        belongId:belongid
+        cbelongId:cbelong
       }
+      data.recyclerList.push(dat)
       recycler(data).then((res=>{
-        let name =this.$route.query.name
         let belong = this.$route.query.belong
-        this.getuserfile(name,belong)
+        this.getuserfile(belong)
         this.$message({
           message: '文件已加入回收站！',
           type: 'success'
@@ -391,20 +616,22 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
       }
       this.record.push({belong:belong,name:name})
       getfile(data).then((res=>{
-        console.log(res)
         if(res.data.code==200){
           this.movelist= []
           res.data.data.forEach(item => {
-            if(item.fileId!=this.userFileId){
-              this.movelist.push(item)
+            let nums = 0
+            for(let b=0;b<this.userFileId.length;b++){
+            if(item.fileId!=this.userFileId[b]){
+             
+            }else{
+              nums = nums +1
             }
-          })
-          if(this.movelist!=[]&&this.movelist.length>0){
-            this.preservation = this.movelist[0].belongId
-          }else{
-            this.preservation =belong
           }
-          
+          if(nums==0){
+            this.movelist.push(item)
+          }
+          })
+          this.preservation = res.data.data[0].belongId
         }else if(res.data.code==201){
           this.movelist = res.data.data
           this.preservation = res.data.data
@@ -412,13 +639,14 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
         
       }))
     },
-    //文件移动
-    Move(id,belongId,folderBelongId,typee){
-      this.fileTypes = typee
-      this.folderBelongId = folderBelongId
-      this.belongId= belongId
+    //批量文件移动
+    Moves(){
+      this.ismoves = true
       this.movelist = []
-      this.userFileId = id
+      this.userFileId = []
+      for(let x = 0;x<this.SelectedFile.length;x++){
+        this.userFileId.push(this.SelectedFile[x].fileId)
+      }
       this.record = []
       let data = {
         id:sessionStorage.getItem('userid'),
@@ -428,9 +656,56 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
       file(data).then((res=>{
         console.log(res)
         for(let a = 0;a<res.data.data.length;a++){
-          if(res.data.data[a].belongId==""&&res.data.data[a].fileId!=this.userFileId){
+          let nums = 0
+          for(let b=0;b<this.userFileId.length;b++){
+            if(res.data.data[a].belongId==""&&res.data.data[a].fileId!=this.userFileId[b]){
+             
+            }else{
+              nums = nums +1
+            }
+          }
+          if(nums==0){
             this.movelist.push(res.data.data[a])
           }
+          
+        }
+        if(this.movelist){
+          this.preservation = this.movelist[0].belongId
+        }
+        
+        this.movetype = true
+      }))
+    },
+
+    //文件移动
+    Move(id,belongId,folderBelongId,typee){
+      this.fileTypes = typee
+      this.folderBelongId = folderBelongId
+      this.belongId= belongId
+      this.movelist = []
+      this.userFileId = []
+      this.userFileId.push(id)
+      this.record = []
+      let data = {
+        id:sessionStorage.getItem('userid'),
+      }
+      this.record.push({belong:sessionStorage.getItem('userid')+'@-.@',name:"全部文件"})
+      console.log(data);
+      file(data).then((res=>{
+        console.log(res)
+        for(let a = 0;a<res.data.data.length;a++){
+          let nums = 0
+          for(let b=0;b<this.userFileId.length;b++){
+            if(res.data.data[a].belongId==""&&res.data.data[a].fileId!=this.userFileId[b]){
+             
+            }else{
+              nums = nums +1
+            }
+          }
+          if(nums==0){
+            this.movelist.push(res.data.data[a])
+          }
+          
         }
         if(this.movelist){
           this.preservation = this.movelist[0].belongId
@@ -439,23 +714,6 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
         this.movetype = true
       }))
   
-    },
-    //文件预览
-    prev(filePath,type){
-      this.filestatus = type
-      let data = {
-        filePath:filePath,
-        userId:sessionStorage.getItem('userid')
-      }
-      console.log(data)
-      downloads(data).then((res=>{
-        console.log(res)
-        if(res.data.code==200){
-          this.src = res.data.data
-          this.drawer = true
-        }
-      }))
-      
     },
     //获取用户文件信息
     getuserfile(belong){
@@ -467,7 +725,9 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
       getfile(data).then((res=>{
         console.log(res)
         if(res.data.code==200){
-          this.list  =res.data.data
+          
+          this.list =res.data.data
+          this.currentPath = this.list[0].belongId
           this.listnum()
           if(this.list.length<=0){
             this.setSessionItem('listLength','true')
@@ -476,6 +736,7 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
           }
             
         }else if(res.data.code==201){
+          this.currentPath = res.data.data
           if(this.list.length<=0){
             this.setSessionItem('listLength','true')
           }else{
@@ -490,7 +751,7 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
     //更新文件列表长度
     listnum(){
       this.checked=[]
-      for(var i=0;i<this.list;i++){
+      for(var i=0;i<this.list.length;i++){
         this.checked.push(false)
       }
     },
@@ -507,34 +768,17 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
       
     },
     async down(filepath,name,type){
-      //文件流
-      // let data = {
-      //   fileNath:"D:@bishe@file@1@大视频.mp4",
-      //   id:"1",
-      // }
-      // download(data).then((res=>{
-      //   // console.log(res)
-      //   // var fileName = "xiao.mp4"
-      //   // let blob = new Blob([res.request.response], {type:"application/octet-stream"});
-      //   // var downloadElement = document.createElement("a");
-      //   // var href = window.URL.createObjectURL(blob); //常见下载的链接
-      //   // downloadElement.href = href;
-      //   // downloadElement.download = fileName; //下载后文件名
-      //   // document.body.appendChild(downloadElement);
-      //   // downloadElement.click(); //点击下载
-      //   // document.body.removeChild(downloadElement); //下载完成移除元素
-      //   // window.URL.revokeObjectURL(href);  //释放blob对象
-      // }))
-
       //url地址
       let data = {
         filePath:filepath,
         userId:sessionStorage.getItem('userid')
       }
-      console.log(data)
       downloads(data).then(( async res=>{
+        
         if (res.status==200) {
-          if(type=='mp4'||type=='jpg'||type=='png'||type=='txt'){
+          
+          // if(type=='mp4'||type=='jpg'||type=='png'||type=='txt'){
+          if(true){
             const h = this.$createElement;
                         let notify= this.$notify({
                           title:'文件解析中',
@@ -544,7 +788,7 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
                           duration:0,
                         });
 
-                        fetch(res.data.data).then(res => res.blob()).then(blob => { // 将链接地址字符内容转变成blob地址
+                        fetch(res.data.data.url).then(res => res.blob()).then(blob => { // 将链接地址字符内容转变成blob地址
                                 const link = document.createElement('a');
                                 link.href = URL.createObjectURL(blob);
                                 link.download = name;
@@ -560,7 +804,7 @@ import {downloads,file,rename,movement,recycler,getfile} from "../apis/index"
                             });
           }else{
             const link = document.createElement('a')
-            link.href = res.data.data
+            link.href = res.data.data.url
             // link.target = '_blank'
             link.setAttribute('download', name) 
             document.body.appendChild(link)
@@ -863,7 +1107,6 @@ body {
   margin-left: 1%;
 }
 .xlayer2{
-
   min-height: 100vh;
   margin-top: 110px;
   position: absolute;

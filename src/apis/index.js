@@ -80,7 +80,7 @@ export function getfile(param) {
 //放入回收站
 export function recycler(param) {
     return httpRequest({
-		url: '/api/recycler/'+param.userId,
+		url: '/api/recycler/'+param.recyclerList[0].userId,
 		method: 'post',
 		data:param,
 	})
@@ -113,5 +113,13 @@ export function hash(param) {
     return httpRequest({
 		url: '/api/hash/'+param.userId+"/"+param.hash,
 		method: 'get',
+	})
+}
+//批量下载
+export function Downs(param) {
+    return httpRequest({
+		url: '/api/downloads/'+param.id,
+		method: 'post',
+		data:param,
 	})
 }

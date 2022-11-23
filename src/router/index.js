@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import home from '../components/home.vue'
 import login from '../components/login.vue'
-import photo from '../components/photo.vue'
+import share from '../components/share.vue'
 import video from '../components/video.vue'
 import file from '../components/file.vue'
 import folder from '../components/folder.vue'
@@ -31,11 +31,11 @@ const routes = [
         }
       },
       {
-        path: '/photo',
-        name: 'photo',
-        component: photo,
+        path: '/share',
+        name: 'share',
+        component: share,
         meta:{
-          title:'照片'
+          title:'我的分享'
         }
       },
       {
@@ -43,7 +43,7 @@ const routes = [
         name: 'video',
         component: video,
         meta:{
-          title:'音视频'
+          title:'404'
         }
       },
       {
@@ -73,6 +73,18 @@ const routes = [
         path: '/SaveMove',
         name: 'SaveMove',
         component: SaveMove,
+        meta:{
+          title:'我的分享'
+        }
+        
+      },
+      {
+        path: '*',
+        name: 'SaveMove',
+        component: SaveMove,
+        meta:{
+          title:'我的分享'
+        }
         
       },
       
@@ -85,7 +97,10 @@ const router = new Router({
     routes,
   });
   router.beforeEach((to, from, next) => {
-    if (sessionStorage.getItem('users')=='false'||!sessionStorage.getItem('users')) {
+    if(to.fullPath.slice(0,3)==="/s/"){
+      next();
+    }else{
+      if (sessionStorage.getItem('users')=='false'||!sessionStorage.getItem('users')) {
         if (to.name == "login") {
           next();
       } else {
@@ -99,6 +114,9 @@ const router = new Router({
       }
       
     }
+    }
+      
+  
     })
 
 

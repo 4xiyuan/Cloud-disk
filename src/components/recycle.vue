@@ -25,10 +25,10 @@
         </div>
     </li>
 
-    <div v-show="SelectedFile!=null" :class="sidebartypes ? 'multi-select' :'multi-select2'">
-      <div class="selectbox" title="恢复"><img style="margin-top: 5px;" src="../../public/photo/recovery.png" width="20px" height="20px"></div>
+    <div v-show="SelectedFile.length>0" :class="sidebartypes ? 'multi-select' :'multi-select2'">
+      <div @click="Reductions()" class="selectbox" title="恢复"><img  style="margin-top: 5px;" src="../../public/photo/recovery.png" width="20px" height="20px"></div>
       <div class="selectbox" title="彻底删除"><img style="margin-top: 5px;" src="../../public/photo/delete.png" width="20px" height="20px"></div>
-      <div class="selectbox" title="取消多选"><img style="margin-top: 5px;" src="../../public/photo/cancel.png" width="20px" height="20px"></div>
+      <div class="selectbox" title="取消多选" ><img @click="checkeds = false;StateChange()" style="margin-top: 5px;" src="../../public/photo/cancel.png" width="20px" height="20px"></div>
     </div>
     <!-- <a v-show="false" ref="downs" href="xxx.txt" download="xxx.txt"></a> -->  
 
@@ -47,7 +47,7 @@ import {file,getrecycler,reduction} from "../apis/index"
           //文件选择状态
           checked:[],
           //已选中文件
-          SelectedFile:null,
+          SelectedFile:[],
           //悬浮于哪一个文件下标
           boxindex:null,
           //文件列表
@@ -58,7 +58,6 @@ import {file,getrecycler,reduction} from "../apis/index"
    },
    created(){
     this.getuserfile()
-    this.listnum()
    },
    mounted(){
     window.addEventListener("setItem", () => {
@@ -72,21 +71,39 @@ import {file,getrecycler,reduction} from "../apis/index"
    },
    watch:{
     'checked'(){
-      this.SelectedFile=null
+      this.SelectedFile=[]
       for(var i =0;i<this.checked.length;i++){
         if(this.checked[i]==true){
-          this.SelectedFile=1
+          this.checkeds = true
+          this.SelectedFile.push(this.list[i].fileId)
+        }else{
+          this.checkeds = false
         }
       }
     },
    },
    methods:{
+    //批量还原文件
+    Reductions(){
+      let data = {
+        userId:sessionStorage.getItem('userid'),
+        fileIds:this.SelectedFile
+      }
+      reduction(data).then((res=>{
+        this.getuserfile()
+        this.$message({
+          message: '文件恢复成功！',
+          type: 'success'
+        });
+      }))
+    },
     //还原文件
     Reduction(fileId){
       let data = {
         userId:sessionStorage.getItem('userid'),
-        fileId:fileId
+        fileIds:[]
       }
+      data.fileIds.push(fileId)
       console.log(data)
       reduction(data).then((res=>{
         this.getuserfile()
@@ -107,15 +124,19 @@ import {file,getrecycler,reduction} from "../apis/index"
             this.setSessionItem('listLength','false')
           }
           this.list = res.data.data  
+          this.listnum()
         }
       }))
     },
     //更新文件列表长度
     listnum(){
       this.checked=[]
-      for(var i=0;i<this.list;i++){
+      if(this.list){
+        for(let i=0;i<this.list.length;i++){
         this.checked.push(false)
+        }
       }
+      
     },
     //更新已选中文件内容
     StateChange(){
