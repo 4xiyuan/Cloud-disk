@@ -17,7 +17,7 @@
                     <el-dropdown-item @click.native="Rename(item.fileName,item.belongId,item.fileType,item.fileId,item.folderBelongId)">重命名</el-dropdown-item>
                     <el-dropdown-item  @click.native="Move(item.fileId,item.belongId,item.folderBelongId,item.fileType)">移动</el-dropdown-item>
                     <el-dropdown-item >分享</el-dropdown-item>
-                    <el-dropdown-item >移动至我的隐私</el-dropdown-item>
+                    <el-dropdown-item @click.native="AddMylist(item.fileType,item.fileId,item.cbelong)" >移动至我的隐私</el-dropdown-item>
                     <el-dropdown-item @click.native="Recycler(item.fileId,item.fileType,item.cbelong)"><span style="color: rgb(255, 0, 0);">移至回收站</span></el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
@@ -39,7 +39,7 @@
     <div v-show="SelectedFile.length>0" :class="sidebartypes ? 'multi-select' :'multi-select2'">
       <div @click="downs()" class="selectbox" title="下载"><img style="margin-top: 5px;" src="../../public/photo/download.png" width="20px" height="20px"></div>
       <div @click="Moves()" class="selectbox" title="移动至"><img style="margin-top: 5px;" src="../../public/photo/mobile.png" width="20px" height="20px"></div>
-      <div class="selectbox" title="移动至我的隐私"><img style="margin-top: 5px;" src="../../public/photo/suo.png" width="20px" height="20px"></div>
+      <div @click="AddMylists()" class="selectbox" title="移动至我的隐私"><img style="margin-top: 5px;" src="../../public/photo/suo.png" width="20px" height="20px"></div>
       <div @click="Recyclers()" class="selectbox" title="放入回收站"><img style="margin-top: 5px;" src="../../public/photo/delete.png" width="20px" height="20px"></div>
       <div @click="checkeds = false;StateChange()" class="selectbox" title="取消多选"><img  style="margin-top: 5px;" src="../../public/photo/cancel.png" width="20px" height="20px"></div>
     </div>
@@ -129,7 +129,7 @@
 
 <script type="text/javascript">
 import download from "downloadjs";
-import {downloads,file,rename,movement,recycler,getfile,Downs} from "../apis/index"
+import {downloads,file,rename,movement,recycler,getfile,Downs,addMylist} from "../apis/index"
    export default {
     inject:['reload'],
    data() {
@@ -252,6 +252,57 @@ import {downloads,file,rename,movement,recycler,getfile,Downs} from "../apis/ind
     }
    },
    methods:{
+    //移动至我的隐私
+    AddMylist(type,fileId,cbelong){
+      let data = {
+        collectList:[
+          {
+            "cbelongId": cbelong,
+            "fileId": fileId,
+            "fileType": type
+          }
+        ]
+      }
+      addMylist(data).then((res=>{
+        if(res.data.code==200){
+          let belong = this.$route.query.belong
+          this.getuserfile(belong)
+          this.$message({
+          message: res.data.msg,
+          type: 'success'
+        });
+        }else{
+          this.$message.error(res.data.msg)
+        }
+      }))
+    },
+    //批量移动至我的隐私
+    AddMylists(){
+      let data = {
+        collectList:[]
+      }
+      this.SelectedFile.forEach(item => {
+        let dat = {
+        "cbelongId": item.cBelongId,
+        "fileId": item.fileId,
+        "fileType": item.type
+        }
+        data.collectList.push(dat)
+        
+      })
+      addMylist(data).then((res=>{
+        if(res.data.code==200){
+          let belong = this.$route.query.belong
+          this.getuserfile(belong)
+          this.$message({
+          message: res.data.msg,
+          type: 'success'
+        });
+        }else{
+          this.$message.error(res.data.msg)
+        }
+      }))
+    },
     //批量放入回收站
     Recyclers(){
       let data = {
@@ -365,7 +416,7 @@ import {downloads,file,rename,movement,recycler,getfile,Downs} from "../apis/ind
             icon: "el-icon-folder-opened",
             label: "移动至我的隐私",
             onClick: () => {
-              console.log(123);
+              this.AddMylist(this.list[fileindex].fileType,this.list[fileindex].fileId,this.list[fileindex].cbelong)
             }
           },
            {
@@ -410,7 +461,7 @@ import {downloads,file,rename,movement,recycler,getfile,Downs} from "../apis/ind
             icon: "el-icon-folder-opened",
             label: "移动至我的隐私",
             onClick: () => {
-              console.log(123);
+              this.AddMylist(this.list[fileindex].fileType,this.list[fileindex].fileId,this.list[fileindex].cbelong)
             }
           },
            {

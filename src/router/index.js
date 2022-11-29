@@ -8,6 +8,8 @@ import file from '../components/file.vue'
 import folder from '../components/folder.vue'
 import recycle from '../components/recycle.vue'
 import SaveMove from '../components/SaveMove.vue'
+import information from '../components/information.vue'
+
 Vue.use(Router);
 
  
@@ -87,7 +89,11 @@ const routes = [
         }
         
       },
-      
+      {
+        path: '/information',
+        name: 'information',
+        component: information,
+      },      
   ];
   
   

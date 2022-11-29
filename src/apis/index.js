@@ -15,6 +15,54 @@ export function userregister(param) {
 		data:param,
 	})
 }
+//查询用户信息
+export function getUser(param) {
+    return httpRequest({
+		url: '/api/user/'+param.userId,
+		method: 'get',
+	})
+}
+//校验二级密码
+
+export function checkUser(param) {
+    return httpRequest({
+		url: '/api/sePassword/'+param.userId+'/'+param.sePassword,
+		method: 'get',
+	})
+}
+//设置二级密码
+export function setUserPassword(param) {
+    return httpRequest({
+		url: '/api/sePassword/'+param.userId,
+		method: 'post',
+		data:param
+	})
+}
+//修改二级密码
+export function putUser(param) {
+    return httpRequest({
+		url: '/api/sePassword/'+param.userId,
+		method: 'put',
+		data:param
+	})
+}
+//修改用户昵称
+export function Modifynickname(param) {
+    return httpRequest({
+		url: '/api/name/'+param.userId,
+		method: 'put',
+		data:param,
+	})
+}
+//修改登录密码
+
+export function checkPassword(param) {
+    return httpRequest({
+		url: '/api/password/'+param.userId,
+		method: 'put',
+		data:param,
+	})
+}
 //上传
 export function upload(param) {
     return httpRequest({
@@ -121,5 +169,36 @@ export function Downs(param) {
 		url: '/api/downloads/'+param.id,
 		method: 'post',
 		data:param,
+	})
+}
+//文件彻底删除
+export function deletes(param) {
+    return httpRequest({
+		url: '/api/recycler/'+param.userId,
+		method: 'delete',
+		data:param,
+	})
+}
+//查询我的隐私列表
+export function getMylist(param) {
+    return httpRequest({
+		url: '/api/collect/'+param.userId,
+		method: 'get',
+	})
+}
+//添至我的隐私
+export function addMylist(param) {
+    return httpRequest({
+		url: '/api/collect/'+param.userId,
+		method: 'post',
+		data:param
+	})
+}
+//还原出我的隐私
+export function putMylist(param) {
+    return httpRequest({
+		url: '/api/collect/'+param.userId,
+		method: 'put',
+		data:param
 	})
 }

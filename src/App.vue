@@ -54,14 +54,15 @@
           <div class="hrad">
             <i class="el-icon-user-solid"></i>
           </div>
-          <span style="margin-left: 10px;font-size: 18px;">张三李四</span>
+          <span v-if="uName" style="margin-left: 10px;font-size: 18px;">{{uName}}</span>
           <div class="foot">
             <el-dropdown trigger="click" placement="top-start">
               <span class="el-dropdown-link">
                 <i class="el-icon-more"></i>
               </span>
               <el-dropdown-menu slot="dropdown">
-                <!-- <el-dropdown-item >个人中心</el-dropdown-item>
+                <el-dropdown-item @click.native="gto()">个人中心</el-dropdown-item>
+                <!-- 
                 <el-dropdown-item >我的分享</el-dropdown-item>
                 <el-dropdown-item >待定</el-dropdown-item>
                 <el-dropdown-item >待定</el-dropdown-item> -->
@@ -73,7 +74,7 @@
        </div>
 
        <div class="card" >
-        <li style="list-style-type: none;float: left;" v-for="index in 4" :key="index">
+        <li style="list-style-type: none;float: left;" v-for="index in 3" :key="index">
           <div v-if="index!=sidebarnum" @mouseover="ind=index" @mouseleave="ind=null" @click="Sidebars(index)" :class="ind==index ? 'cards2':'cards'">
             <img class="che"  :src="require('../public/photo/che'+(index)+'.png')" >
             <span class="textr">{{title[index-1]}}</span>
@@ -86,9 +87,9 @@
        </div>
 
        <div class="foots">
-        <span class="foots-text">160 GB / 240 GB</span>
+        <span class="foots-text">{{usedspace}} GB / {{allspace}} GB</span>
         <span class="foots-text2">云盘容量</span>
-        <el-progress style="margin-top: 10px;"  :percentage="160/240*100" :show-text="false"></el-progress>
+        <el-progress v-if="usedspace&&allspace" style="margin-top: 10px;"  :percentage="(usedspace/allspace)*100" :show-text="false"></el-progress>
        </div>
 
       </div>
@@ -155,7 +156,7 @@
 import home from '../src/components/home.vue'
 import SparkMD5 from 'spark-md5'
 import upload from '../src/upload.vue'
-import {endUpload,addfolder} from '../src/apis/index'
+import {endUpload,addfolder,getUser} from '../src/apis/index'
    export default {
     components: {
     'uploads': upload,
@@ -167,6 +168,11 @@ import {endUpload,addfolder} from '../src/apis/index'
   },
    data() {
        return {
+          //用户名
+          uName:null,
+          //总容量
+          allspace:null,
+          usedspace:null,
           //当前页面是否尚未有文件
           listLength:false,
           //当前是否为主页或文件夹页
@@ -179,8 +185,8 @@ import {endUpload,addfolder} from '../src/apis/index'
           usert:sessionStorage.getItem('users'),
           ind:100,
           sidebarnum:1,
-          routers:['/home','/share','/file','/recycle'],
-          title:['全部文件','我的分享','我的隐私','回收站'],
+          routers:['/home','/file','/recycle'],
+          title:['全部文件','我的隐私','回收站'],
           //搜索框内容
           searchText:null,
           //新建文件夹层是否渲染变量
@@ -258,7 +264,7 @@ import {endUpload,addfolder} from '../src/apis/index'
   },
   created(){
     this.initData();
-    
+    this.GetUser()
   },
   computed: {
     key() {
@@ -269,6 +275,10 @@ import {endUpload,addfolder} from '../src/apis/index'
   },
   mounted(){
     window.addEventListener("setItem", () => {
+      if(sessionStorage.getItem("Space")=='true'){
+        this.GetUser()
+        sessionStorage.setItem('Space','false')
+      }
       if(sessionStorage.getItem("shang")=='true'){
         this.$refs.uploads.shang()
         sessionStorage.setItem('shang','false')
@@ -296,6 +306,23 @@ import {endUpload,addfolder} from '../src/apis/index'
     }
   },
    methods:{
+    //查询容量
+    GetUser(){
+      let data = {
+        userId:sessionStorage.getItem('userid')
+      }
+      getUser(data).then((res=>{
+        this.uName = res.data.data.nickname
+        this.allspace = res.data.data.allSpace/1024/1024/1024
+        this.usedspace = (res.data.data.usedSpace/1024/1024/1024).toFixed(2)
+      }))
+    },
+    //跳转到个人信息
+    gto(){
+      this.sidebarnum = 0
+      sessionStorage.setItem('sidebar',''+0)
+      this.$router.push('/information')
+    },
     //注销
     cancellation(){
       sessionStorage.setItem('users','false')
@@ -456,11 +483,18 @@ cursor: pointer;
 
 
 .nulls{
-  
   margin-left: 40%;
   margin-top: 15%;
   z-index: 2;
   position: absolute;
+  transition: all 0.4s;
+}
+.nulls2{
+  margin-left: calc(40%-240px);
+  margin-top: 15%;
+  z-index: 2;
+  position: absolute;
+  transition: all 0.4s;
 }
 .card-box {
   border-radius: 25px;

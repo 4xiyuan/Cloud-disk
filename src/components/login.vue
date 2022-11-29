@@ -88,6 +88,7 @@
             sessionStorage.setItem('users','true')
             sessionStorage.setItem('belongId',res.data.data.belongId)
             sessionStorage.setItem('userid',res.data.data.userId)
+            sessionStorage.setItem('userNAME',res.data.data.userName)
             sessionStorage.setItem('sidebartype','true')
             this.$message.success('登录成功！');
             this.$router.push('/home')

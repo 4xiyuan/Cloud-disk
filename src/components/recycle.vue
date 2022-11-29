@@ -1,5 +1,6 @@
 <template>
   <div  :class="sidebartypes ? 'xlayer' :'xlayer2'">
+    <div v-if="list==[]||list==null" class="NoText">回收站暂无文件</div>
     <div v-if="list!=[]&&list!=null" class="allbox"><el-checkbox @change="StateChange()" v-model="checkeds">全选</el-checkbox></div>
     <li style="float: left;list-style-type: none;" v-for="item,index in list" :key="index">
         <div  class="Alayer " >
@@ -12,7 +13,7 @@
                   </span>
                   <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item @click.native="Reduction(item.fileId)">恢复</el-dropdown-item>
-                    <el-dropdown-item ><span style="color: rgb(255, 0, 0);">彻底删除</span></el-dropdown-item>
+                    <el-dropdown-item @click.native="Deletes(item.fileId,item.deleteId,item.belongId,item.fileSize)"><span style="color: rgb(255, 0, 0);">彻底删除</span></el-dropdown-item>
                   </el-dropdown-menu>
                 </el-dropdown>
             </div>
@@ -27,7 +28,7 @@
 
     <div v-show="SelectedFile.length>0" :class="sidebartypes ? 'multi-select' :'multi-select2'">
       <div @click="Reductions()" class="selectbox" title="恢复"><img  style="margin-top: 5px;" src="../../public/photo/recovery.png" width="20px" height="20px"></div>
-      <div class="selectbox" title="彻底删除"><img style="margin-top: 5px;" src="../../public/photo/delete.png" width="20px" height="20px"></div>
+      <div @click="Deletes()" class="selectbox" title="彻底删除"><img style="margin-top: 5px;" src="../../public/photo/delete.png" width="20px" height="20px"></div>
       <div class="selectbox" title="取消多选" ><img @click="checkeds = false;StateChange()" style="margin-top: 5px;" src="../../public/photo/cancel.png" width="20px" height="20px"></div>
     </div>
     <!-- <a v-show="false" ref="downs" href="xxx.txt" download="xxx.txt"></a> -->  
@@ -37,7 +38,7 @@
 
 <script type="text/javascript">
 import download from "downloadjs";
-import {file,getrecycler,reduction} from "../apis/index"
+import {file,getrecycler,reduction,deletes} from "../apis/index"
    export default {
     inject:['reload'],
    data() {
@@ -75,7 +76,8 @@ import {file,getrecycler,reduction} from "../apis/index"
       for(var i =0;i<this.checked.length;i++){
         if(this.checked[i]==true){
           this.checkeds = true
-          this.SelectedFile.push(this.list[i].fileId)
+          this.SelectedFile.push({"fileId":this.list[i].fileId,"deleteId":this.list[i].deleteId,belongId:this.list[i].belongId,'filesize':this.list[i].fileSize})
+          
         }else{
           this.checkeds = false
         }
@@ -138,6 +140,52 @@ import {file,getrecycler,reduction} from "../apis/index"
       }
       
     },
+    //彻底删除
+    Deletes(fileId,deleteId,belong,filesize){
+      if(fileId!=null&&deleteId!=null){
+        let data = {
+          userId:sessionStorage.getItem('userid'),
+          dlist:[deleteId],
+          flist:[fileId],
+          blist:[belong],
+          slist:[filesize]
+
+        }
+       deletes(data).then((res=>{
+        if(res.data.code ==200){
+          this.$message.success(res.data.msg);
+          this.getuserfile()
+          this.setSessionItem('Space',"true")
+        }else{
+          this.$message.error(res.data.msg);
+        }
+       }))
+      }else{
+        let data = {
+          userId:sessionStorage.getItem('userid'),
+          dlist:[],
+          flist:[],
+          blist:[],
+          slist:[]
+        }
+        this.SelectedFile.forEach(item => {
+          data.dlist.push(item.deleteId)
+          data.flist.push(item.fileId)
+          data.blist.push(item.belongId)
+          data.slist.push(item.filesize)
+
+        });
+        deletes(data).then((res=>{
+        if(res.data.code ==200){
+          this.$message.success(res.data.msg);
+          this.setSessionItem('Space',"true")
+          this.getuserfile()
+        }else{
+          this.$message.error(res.data.msg);
+        }
+       }))
+      }
+    },
     //更新已选中文件内容
     StateChange(){
       if(this.checkeds==true){
@@ -159,6 +207,16 @@ import {file,getrecycler,reduction} from "../apis/index"
 </script>
 
 <style scoped>
+
+.NoText{
+  position: absolute;
+  font-size: 30px;
+  width: 220px;
+  margin-left: 40%;
+  margin-top: 15%;
+  
+}
+
 *{
     margin:0;
     padding:0;
@@ -270,7 +328,7 @@ body {
 .xlayer{
   margin-top: 110px;
   position: absolute;
-  width: 96%-240px;
+  width: 86%;
   margin-left: 1%;
 }
 .xlayer2{
