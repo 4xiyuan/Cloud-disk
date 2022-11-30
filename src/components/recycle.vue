@@ -58,6 +58,7 @@ import {file,getrecycler,reduction,deletes} from "../apis/index"
        }
    },
    created(){
+    this.setSessionItem('sidebarnum','4')
     this.getuserfile()
    },
    mounted(){
@@ -89,8 +90,12 @@ import {file,getrecycler,reduction,deletes} from "../apis/index"
     Reductions(){
       let data = {
         userId:sessionStorage.getItem('userid'),
-        fileIds:this.SelectedFile
+        fileIds:[]
       }
+      this.SelectedFile.forEach(item => {
+        data.fileIds.push(item.fileId)
+      });
+      console.log(data);
       reduction(data).then((res=>{
         this.getuserfile()
         this.$message({

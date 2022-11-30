@@ -70,12 +70,12 @@ export default {
 
     },
     async changeFile(file) {
-      this.msg =  this.$message({
-        type: 'warning',
-        dangerouslyUseHTMLString:true,
-         message: '<strong><i class:"el-icon-loading"></i>文件'+file.raw.name+'正在解析中,文件越大解析越慢,请耐心等待！</strong>',
-        duration:0
-      })
+      // this.msg =  this.$message({
+      //   type: 'warning',
+      //   dangerouslyUseHTMLString:true,
+      //    message: '<strong><i class:"el-icon-loading"></i>文件'+file.raw.name+'正在解析中,文件越大解析越慢,请耐心等待！</strong>',
+      //   duration:0
+      // })
       if (!file) return;
       let {
         HASH,
@@ -110,7 +110,6 @@ export default {
             }).then((res=>{
               if(res.data.code==200){
                 //上传完成后刷新数据
-                this.msg.close()
                 this.setSessionItem('Space',"true")
                 if(this.getQueryString('belong')){
                   let belong = this.getQueryString('belong')
@@ -233,7 +232,7 @@ export default {
       }))
     },
     async sendRequest(name,HASH) {
-      this.msg.close()
+      // this.msg.close()
       // 根据切片个数创造请求（集合）
       let requestList = [];
       this.partList[0].data.forEach((item, index) => {

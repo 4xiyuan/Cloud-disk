@@ -11,7 +11,7 @@
                     <i class="el-icon-more"></i>
                   </span>
                   <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item v-if="item.fileType!='folder'"  @click.native="prev(item.filePath,item.belong)" >预览</el-dropdown-item>
+                    <el-dropdown-item v-if="item.fileType!='folder'"  @click.native="prev(item.filePath,item.belong,item.fileName)" >预览</el-dropdown-item>
                     <el-dropdown-item v-if="item.fileType=='folder'"@click.native="open(item.cbelong)" >打开</el-dropdown-item>
                     <el-dropdown-item v-else @click.native="down(item.filePath,item.fileName,item.fileType)" >下载</el-dropdown-item>
                     <el-dropdown-item @click.native="Rename(item.fileName,item.belongId,item.fileType,item.fileId,item.folderBelongId)">重命名</el-dropdown-item>
@@ -106,34 +106,70 @@
       <el-drawer
         size="100%"
         :visible.sync="drawer"
+        @close="closeDrawer()"
         direction="btt">
         <div class="big-box">
-          <div v-if="filestatus=='mp4'" class="video-box">
+          <div v-if="filestatus=='mp4'" >
             <video
               ref="myVideo"
               :src="src"
-              :controls="controls"
-              oncontextmenu="return false"
+              :controls="controls"xlayer
               controlslist="nodownload"
               class="video-boxs"
             ></video>
           </div>
 
           <div v-if="filestatus=='jpg'||filestatus=='png'" class="img-box">
-              <el-image :src="src"></el-image>
+            <div >
+              <img class="imgr-boxs" :src="src" />
+            </div>
+          </div>
+
+          <div>
+              <iframe
+                v-if="filestatus=='pdf'"
+                :src="src"
+                frameborder="0"
+                width="100%"
+                height="800px"
+              ></iframe>
           </div>
         </div>
       </el-drawer>
+
+      <div v-if="musics[0].url.length>0" class="musics-box">
+        <div class="close-box" @click="close()"><i class="el-icon-close"></i></div>
+        <aplayer ref="aplayer" :music="musics[0]" :list="musics" :listFolded="true" ></aplayer>
+      </div>
   </div> 
 </template>
 
 <script type="text/javascript">
 import download from "downloadjs";
+import aplayer from "vue-aplayer";  
 import {downloads,file,rename,movement,recycler,getfile,Downs,addMylist} from "../apis/index"
    export default {
+    components: { 
+        aplayer 
+      },
     inject:['reload'],
    data() {
        return {
+
+        detailForm: {
+       clickType: "",
+       title: "ajlgaljg",
+     },
+     // 音频列表
+     musics: [
+       {
+         title: "",
+         artist: "",
+         url: "",
+         pic: "",
+         lrc: "",
+       },
+     ],
         //当前目录路径
         currentPath:null,
         //移动的文件id
@@ -252,6 +288,13 @@ import {downloads,file,rename,movement,recycler,getfile,Downs,addMylist} from ".
     }
    },
    methods:{
+    //关闭音乐播放器
+    close(){
+      this.$refs.aplayer.pause()
+      this.src = ""
+      this.musics[0].url=""
+      this.musics[0].title=""
+    },
     //移动至我的隐私
     AddMylist(type,fileId,cbelong){
       let data = {
@@ -913,12 +956,41 @@ import {downloads,file,rename,movement,recycler,getfile,Downs,addMylist} from ".
       })
       this.reload()
     },
+    //文件预览
+    prev(filePath,type,name){
+      this.filestatus = type
+      let data = {
+        filePath:filePath,
+        userId:sessionStorage.getItem('userid')
+      }
+      console.log(data)
+      downloads(data).then((res=>{
+        if(res.data.code==200){
+          this.src = res.data.data.url
+          if(this.filestatus=="mp3"){
+            this.musics[0].url=this.src.replace(/\\/,'/')
+            this.musics[0].title = name
+            let timers = setTimeout(() => {
+            this.$refs.aplayer.play()
+            }, 100)
+
+          }else if(this.filestatus=="mp4"||this.filestatus=="pdf"||this.filestatus=="png"||this.filestatus=="jpg"){
+            this.drawer = true
+          }else{
+            this.$message.warning('该类型文件暂时无法预览！');
+          }
+          
+        }
+      }))
+      
+    },
     //点击文件
     opens(filePath,type,name,belong){
+      this.musics[0].url=""
       if(type=="folder"){
         this.open(belong)
       }else{
-        this.prev(filePath,type)
+        this.prev(filePath,type,name)
       }
     },
     beforeDestroy() {
@@ -937,7 +1009,27 @@ import {downloads,file,rename,movement,recycler,getfile,Downs,addMylist} from ".
     padding:0;
   }
 
-
+.close-box{
+  cursor: pointer;
+  font-size: 20px;
+  right: 20px;
+  top: 10px;
+  z-index: 100;
+  position: absolute;
+}
+.close-box:hover{
+  color: rgb(24, 158, 253);
+}
+.musics-box{
+  z-index: 99;
+  /* border: 1px red solid; */
+  position: fixed;
+  width: 45%;
+  height: 100px;
+  bottom: 10px;
+  margin-left: 20%;
+  background: rgb(255, 255, 255);
+}
 button {
   margin-top: 30px;
   padding: 1.3em 3em;
@@ -1028,14 +1120,16 @@ button:active {
   height: 80%;
   }
 .img-box{
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  margin: auto;
+  position: absolute;
+  left: 2%;
+  top: 1%;
+  width: 96%;
+  height: 98%;
+  text-align: center;
   }
+.imgr-boxs{
+  max-height: 900px;
+}
 .video-box{
   width: 100%;
   height: 100%;
@@ -1046,6 +1140,7 @@ button:active {
   margin: auto;
 }
 .video-boxs{
+  margin-top: -60px;
   width: 100%;
   height: 100%;
 }

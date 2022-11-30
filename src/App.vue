@@ -233,7 +233,7 @@ import {endUpload,addfolder,getUser} from '../src/apis/index'
         sessionStorage.setItem('zhutitle',this.$route.meta.title)
         this.routeTitle = sessionStorage.getItem('zhutitle')
       }
-      //路由跳转侧边栏跟着变动
+      // 路由跳转侧边栏跟着变动
       //  console.log(226)
       // if(this.$route.path=='/home'){
       //   sessionStorage.setItem('sidebar',''+1)
@@ -241,15 +241,12 @@ import {endUpload,addfolder,getUser} from '../src/apis/index'
       // }else if(this.$route.path=='/folder'){
       //   sessionStorage.setItem('sidebar',''+1)
       //   this.sidebarnum = 1
-      // }else if(this.$route.path=='/share'){
+      // }else if(this.$route.path=='/file'){
       //   sessionStorage.setItem('sidebar',''+2)
       //   this.sidebarnum = 2
-      // }else if(this.$route.path=='/file'){
+      // }else if(this.$route.path=='/recycle'){
       //   sessionStorage.setItem('sidebar',''+3)
       //   this.sidebarnum = 3
-      // }else if(this.$route.path=='/recycle'){
-      //   sessionStorage.setItem('sidebar',''+4)
-      //   this.sidebarnum = 4
       // }
 
       //路由跳转时重置滚动条顶部
@@ -275,6 +272,11 @@ import {endUpload,addfolder,getUser} from '../src/apis/index'
   },
   mounted(){
     window.addEventListener("setItem", () => {
+      if(sessionStorage.getItem('sidebarnum')){
+        this.sidebarnum = sessionStorage.getItem('sidebarnum')-1
+        sessionStorage.setItem('sidebar',sessionStorage.getItem('sidebarnum'))
+        sessionStorage.removeItem('sidebarnum')
+      }
       if(sessionStorage.getItem("Space")=='true'){
         this.GetUser()
         sessionStorage.setItem('Space','false')
@@ -431,8 +433,6 @@ import {endUpload,addfolder,getUser} from '../src/apis/index'
       
     },
     Sidebars(index){
-      sessionStorage.setItem('sidebar',''+index)
-      this.sidebarnum = index
       this.$router.push(this.routers[index-1])
     },
    }
@@ -718,14 +718,14 @@ body::-webkit-scrollbar {
 .Toptaskbar{
   position: fixed;
   z-index: 200;
-  width: 62%;
+  width: 1920px;
   margin-left: 240px;
   height: 90px;
   transition: all .4s;
   background: rgb(255, 255, 255);
 }
 .Toptaskbar2{
-  width: 72%;
+  width: 1920px;
   z-index: 200;
   position: fixed;
   background: rgb(255, 255, 255);

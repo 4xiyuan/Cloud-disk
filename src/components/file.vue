@@ -98,6 +98,7 @@ import {checkUser,getUser,setUserPassword,getMylist,putMylist,downloads} from '.
     });
    },
    created(){
+    this.setSessionItem('sidebarnum','3')
     this.GetUser()
     this.getmylist()
    },
